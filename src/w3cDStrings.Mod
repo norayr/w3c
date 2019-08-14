@@ -117,7 +117,7 @@ END Append;
 PROCEDURE (this: DynamicString) AppendInt*(x: HUGEINT);
 	VAR numStr: ARRAY 24 OF CHAR;
 BEGIN
-	Strings.IntToString(x, numStr); this.Append(numStr)
+	bbStrings.IntToString(x, numStr); this.Append(numStr)
 END AppendInt;
 
 PROCEDURE (this: DynamicString) AppendLn*();
