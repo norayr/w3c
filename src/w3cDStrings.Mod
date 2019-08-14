@@ -162,7 +162,7 @@ END ToLower;
 
 PROCEDURE (this: DynamicString) FromString*(s: String);
 BEGIN
-	this.length := LEN(s$);
+	this.length := Strings.Length(s^);
 	NEW(this.buffer, this.length + 1);
 	this.buffer^ := s$
 END FromString;
