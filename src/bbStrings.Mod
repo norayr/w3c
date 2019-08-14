@@ -57,7 +57,31 @@ END Replace;
   s[k] := 0X
  END IntToString;
 
+(* string manipulation routines *)
 
+PROCEDURE ToUpper* (in: ARRAY OF CHAR; VAR out: ARRAY OF CHAR);
+  VAR i, max: LONGINT;
+ BEGIN i := 0; max := LEN(out)-1;
+  WHILE (in[i] # 0X) & (i < max) DO
+   IF ORD(in[i]) < 256 THEN out[i] := toUpper[ORD(in[i])] ELSE out[i] := in[i] END;
+   INC(i)
+  END;
+  out[i] := 0X
+ END ToUpper;
 
+ PROCEDURE Lower* (ch: CHAR): CHAR;
+ BEGIN 
+  IF ORD(ch) < 256 THEN RETURN toLower[ORD(ch)] ELSE RETURN ch END
+ END Lower;
+
+ PROCEDURE ToLower* (in: ARRAY OF CHAR; VAR out: ARRAY OF CHAR);
+  VAR i, max: LONGINT;
+ BEGIN i := 0; max := LEN(out)-1;
+  WHILE (in[i] # 0X) & (i < max) DO
+   IF ORD(in[i]) < 256 THEN out[i] := toLower[ORD(in[i])] ELSE out[i] := in[i] END;
+   INC(i)
+  END;
+  out[i] := 0X
+ END ToLower;
 
 END bbStrings.

@@ -145,18 +145,19 @@ PROCEDURE (this: DynamicString) ToString*(): String;
 VAR string: String;
 BEGIN
 	NEW(string, this.length + 1);
-	string^ := this.buffer$;
+  COPY("", string^);
+  Strings.Append(this.buffer^, string^);
 	RETURN string
 END ToString;
 
 PROCEDURE (this: DynamicString) ToUpper*();
 BEGIN
-	Strings.ToUpper(this.buffer, this.buffer)
+	bbStrings.ToUpper(this.buffer^, this.buffer^)
 END ToUpper;
 
 PROCEDURE (this: DynamicString) ToLower*();
 BEGIN
-	Strings.ToLower(this.buffer, this.buffer)
+	bbStrings.ToLower(this.buffer^, this.buffer^)
 END ToLower;
 
 PROCEDURE (this: DynamicString) FromString*(s: String);
