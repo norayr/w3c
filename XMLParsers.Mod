@@ -68,7 +68,7 @@ PROCEDURE^ (this: Parser) ParseElementDecl(dtd: DOM.DocTypeDecl), NEW;
 PROCEDURE^ (this: Parser) ParseAttListDecl(dtd: DOM.DocTypeDecl), NEW;
 PROCEDURE^ (this: Parser) ParseEntityDecl(dtd: DOM.DocTypeDecl), NEW;
 PROCEDURE^ (this: Parser) ParseNotationDecl(dtd: DOM.DocTypeDecl), NEW;
-PROCEDURE^ (this: Parser) ParseContentParticle(VAR contentType: SHORTINT): DOM.CollectionCP, NEW;
+PROCEDURE^ (this: Parser) ParseContentParticle(VAR contentType: INTEGER): DOM.CollectionCP, NEW;
 PROCEDURE^ (this: Parser) ParseAttributeValue(): String, NEW;
 PROCEDURE^ (this: Parser) ParseElementContent(): DOM.ContentParticle, NEW;
 PROCEDURE^ (this: Parser) ParseEntityValue(): String, NEW;
@@ -77,7 +77,7 @@ PROCEDURE^ (this: Parser) ParseStartTag(VAR e: DOM.Element; VAR empty: BOOLEAN),
 PROCEDURE^ (this: Parser) ParseEndTag(e: DOM.Element), NEW;
 PROCEDURE^ (this: Parser) ParseAttribute(): DOM.Attribute, NEW;
 PROCEDURE^ IsPubidLiteral(IN str: ARRAY OF CHAR): BOOLEAN;
-PROCEDURE^ StrToInt(str: ARRAY OF CHAR): INTEGER;
+PROCEDURE^ StrToInt(str: ARRAY OF CHAR): LONGINT;
 PROCEDURE^ ExpandPredefinedEntity(IN name: ARRAY OF CHAR): CHAR;
 
 (* initializes a parser with the given scanner. String pooling is turned off initially. *)
@@ -105,12 +105,12 @@ BEGIN
 	END
 END CheckSymbol;
 
-PROCEDURE (this: Parser) ExpandCharacterRef(num: INTEGER): CHAR, NEW;
+PROCEDURE (this: Parser) ExpandCharacterRef(num: LONGINT): CHAR, NEW;
 BEGIN
 	RETURN CHR(SHORT(SHORT(num)))
 END ExpandCharacterRef;
 
-PROCEDURE (this: Parser) ExpandEntityRef(IN name: ARRAY OF CHAR; type: SHORTINT): String, NEW;
+PROCEDURE (this: Parser) ExpandEntityRef(IN name: ARRAY OF CHAR; type: INTEGER): String, NEW;
 	VAR generalEntity: DOM.EntityDecl;
 BEGIN
 	IF this.dtd # NIL THEN
@@ -372,7 +372,7 @@ END ParseMarkupDecls;
 *)
 PROCEDURE (this: Parser) ParseElementDecl(dtd: DOM.DocTypeDecl), NEW;
 	VAR ed: DOM.ElementDecl; ccp: DOM.CollectionCP; s: String;
-		contentType: SHORTINT;
+		contentType: INTEGER;
 BEGIN
 	this.scanner.ScanMarkup();
 	IF ~this.CheckSymbol({Scanner.Name}, "Element name expected") THEN RETURN END;
@@ -497,7 +497,7 @@ END ParseAttListDecl;
 	choice 		::=	'(' S? cp (S? '|' S? cp)+ S? ')'
 	seq			::=	'(' S? cp (S? ',' S? cp)* S? ')'
 *)
-PROCEDURE (this: Parser) ParseContentParticle(VAR contentType: SHORTINT): DOM.CollectionCP, NEW;
+PROCEDURE (this: Parser) ParseContentParticle(VAR contentType: INTEGER): DOM.CollectionCP, NEW;
 	VAR cp: DOM.ContentParticle; ncp: DOM.NameContentParticle; ccp: DOM.CollectionCP; s: String;
 BEGIN ccp := NIL;
 	IF ~this.CheckSymbol({Scanner.ParenOpen}, "'(' expected") THEN RETURN ccp END;
@@ -847,12 +847,12 @@ END ParseEndTag;
 
 PROCEDURE (this: Parser) ExpandCharacterRefs(s: String): String, NEW;
 	VAR
-		from, to: INTEGER;
+		from, to: LONGINT;
 		ch: CHAR;
 
-	PROCEDURE ReplaceEntity(IN source: ARRAY OF CHAR; VAR srcPos: INTEGER;
-												VAR dest: ARRAY OF CHAR; VAR destPos: INTEGER);
-		VAR ch: CHAR; name: ARRAY 32 OF CHAR; sp, np: INTEGER; xch: CHAR;
+	PROCEDURE ReplaceEntity(IN source: ARRAY OF CHAR; VAR srcPos: LONGINT;
+												VAR dest: ARRAY OF CHAR; VAR destPos: LONGINT);
+		VAR ch: CHAR; name: ARRAY 32 OF CHAR; sp, np: LONGINT; xch: CHAR;
 	BEGIN
 		ASSERT(source[srcPos] = "&");
 		sp := srcPos + 1; np := 0;
@@ -890,7 +890,7 @@ BEGIN
 END ExpandCharacterRefs;
 
 PROCEDURE (this: Parser) ParseEntityValue(): String, NEW;
-	VAR s, es: String; xch: CHAR; start, end, len, val: INTEGER; msg: ARRAY 17 OF CHAR;
+	VAR s, es: String; xch: CHAR; start, end, len, val: LONGINT; msg: ARRAY 17 OF CHAR;
 BEGIN
 	s := this.scanner.GetString(Str_EntityValue);
 	this.ds1.Clear; this.ds1.Append(s^);
@@ -954,7 +954,7 @@ BEGIN
 END ParseAttributeValue;
 
 (*PROCEDURE (this: Parser) ParseCharRef(): DOM.CharReference, NEW;
-	VAR cRef: DOM.CharReference; code, res: INTEGER; s: String;
+	VAR cRef: DOM.CharReference; code, res: LONGINT; s: String;
 BEGIN
 	s := this.scanner.GetString(Scanner.CharRef);
 	code := StrToInt(s^);
@@ -985,7 +985,7 @@ BEGIN
 END ParseEntityRef;*)
 
 PROCEDURE IsPubidLiteral(IN str: ARRAY OF CHAR): BOOLEAN;
-	VAR i, len: INTEGER; ch: CHAR;
+	VAR i, len: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; len := LEN(str); ch := str[0];
 	REPEAT
@@ -997,8 +997,8 @@ BEGIN
 	RETURN i = len
 END IsPubidLiteral;
 
-PROCEDURE StrToInt(str: ARRAY OF CHAR): INTEGER;
-	VAR val, res: INTEGER;
+PROCEDURE StrToInt(str: ARRAY OF CHAR): LONGINT;
+	VAR val, res: LONGINT;
 BEGIN
 	IF str[0] = 'x' THEN	(* str in hexadecimal form *)
 		Strings.ToUpper(str, str);
@@ -1009,7 +1009,7 @@ BEGIN
 END StrToInt;
 
 PROCEDURE ExpandPredefinedEntity(IN name: ARRAY OF CHAR): CHAR;
-	VAR i: INTEGER;
+	VAR i: LONGINT;
 BEGIN
 	FOR i := 0 TO LEN(predefinedEntities) - 1 DO
 		IF (name = predefinedEntities[i].name) THEN

@@ -30,24 +30,24 @@ TYPE
 
 	StringReader* = POINTER TO EXTENSIBLE RECORD (Reader)
 		source: String;
-		pos: INTEGER;
+		pos: LONGINT;
 	END;
 
 	StringWriter* = POINTER TO EXTENSIBLE RECORD (Writer)
 		buf-: String;
-		len-: INTEGER;
+		len-: LONGINT;
 	END;
 
 	SString* = POINTER TO ARRAY OF SHORTCHAR;
 
 	SStringReader* = POINTER TO EXTENSIBLE RECORD (Reader)
 		source: SString;
-		pos: INTEGER;
+		pos: LONGINT;
 	END;
 
 	SStringWriter* = POINTER TO EXTENSIBLE RECORD (Writer)
 		buf-: SString;
-		len-: INTEGER;
+		len-: LONGINT;
 	END;
 
 
@@ -80,7 +80,7 @@ END GetError;
 PROCEDURE (this: Writer) Char* (ch: CHAR), NEW, ABSTRACT;
 
 PROCEDURE (this: Writer) String* (IN str: ARRAY OF CHAR), NEW, EXTENSIBLE;
-	VAR i: INTEGER; ch: CHAR;
+	VAR i: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; ch := str[0];
 	WHILE ch # 0X DO this.Char(ch); INC(i); ch := str[i] END
@@ -100,7 +100,7 @@ BEGIN
 END Init;
 
 PROCEDURE (this: Utf8FileReader) Get* (): CHAR, EXTENSIBLE;
-	VAR b: BYTE; ch: CHAR; val, i: INTEGER;
+	VAR b: SHORTINT; ch: CHAR; val, i: LONGINT;
 	
 	PROCEDURE FormatError;
 		CONST formatError = "UTF-8 format error";
@@ -174,7 +174,7 @@ END Char;
 
 (* ------ StringReader ------ *)
 
-PROCEDURE (this: StringReader) Init* (source: String; pos: INTEGER), NEW, EXTENSIBLE;
+PROCEDURE (this: StringReader) Init* (source: String; pos: LONGINT), NEW, EXTENSIBLE;
 BEGIN
 	this.source := source; this.pos := pos; this.ok := TRUE
 END Init;
@@ -192,7 +192,7 @@ END Get;
 
 (* ------ StringWriter ------ *)
 
-PROCEDURE (this: StringWriter) Init* (buf: String; initialCapacity: INTEGER), NEW, EXTENSIBLE;
+PROCEDURE (this: StringWriter) Init* (buf: String; initialCapacity: LONGINT), NEW, EXTENSIBLE;
 BEGIN
 	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, MAX(initialCapacity, 62)) END;
 	this.len := 0; this.buf[0] := 0X; this.ok := TRUE
@@ -217,7 +217,7 @@ END Ln;
 
 (* ------ SStringReader ------ *)
 
-PROCEDURE (this: SStringReader) Init* (source: SString; pos: INTEGER), NEW, EXTENSIBLE;
+PROCEDURE (this: SStringReader) Init* (source: SString; pos: LONGINT), NEW, EXTENSIBLE;
 BEGIN
 	this.source := source; this.pos := pos; this.ok := TRUE
 END Init;
@@ -235,7 +235,7 @@ END Get;
 
 (* ------ SStringWriter ------ *)
 
-PROCEDURE (this: SStringWriter) Init* (buf: SString; initialCapacity: INTEGER), NEW, EXTENSIBLE;
+PROCEDURE (this: SStringWriter) Init* (buf: SString; initialCapacity: LONGINT), NEW, EXTENSIBLE;
 BEGIN
 	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, MAX(initialCapacity, 124)) END;
 	this.len := 0; this.buf[0] := 0X; this.ok := TRUE
@@ -273,25 +273,25 @@ BEGIN
 	NEW(w); w.Init(wr); RETURN w
 END NewUtf8FileWriter;
 
-PROCEDURE NewStringReader* (source: String; pos: INTEGER): StringReader;
+PROCEDURE NewStringReader* (source: String; pos: LONGINT): StringReader;
 	VAR r: StringReader;
 BEGIN
 	NEW(r); r.Init(source, pos); RETURN r
 END NewStringReader;
 
-PROCEDURE NewStringWriter* (buf: String; initialCapacity: INTEGER): StringWriter;
+PROCEDURE NewStringWriter* (buf: String; initialCapacity: LONGINT): StringWriter;
 	VAR w: StringWriter;
 BEGIN
 	NEW(w); w.Init(buf, initialCapacity); RETURN w
 END NewStringWriter;
 
-PROCEDURE NewSStringReader* (source: SString; pos: INTEGER): SStringReader;
+PROCEDURE NewSStringReader* (source: SString; pos: LONGINT): SStringReader;
 	VAR r: SStringReader;
 BEGIN
 	NEW(r); r.Init(source, pos); RETURN r
 END NewSStringReader;
 
-PROCEDURE NewSStringWriter* (buf: SString; initialCapacity: INTEGER): SStringWriter;
+PROCEDURE NewSStringWriter* (buf: SString; initialCapacity: LONGINT): SStringWriter;
 	VAR w: SStringWriter;
 BEGIN
 	NEW(w); w.Init(buf, initialCapacity); RETURN w

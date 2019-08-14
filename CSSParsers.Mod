@@ -55,12 +55,12 @@ PROCEDURE^ (this: Parser) ParseSimpleSelector(): CSS.SimpleSelector, NEW;
 PROCEDURE^ (this: Parser) ParseAttribute(): CSS.Attribute, NEW;
 PROCEDURE^ (this: Parser) ParsePseudo(): CSS.Pseudo, NEW;
 PROCEDURE^ (this: Parser) ParseExpr*(): CSS.Term, NEW;
-PROCEDURE^ (this: Parser) ParseRGB(hasAlpha: BOOLEAN): INTEGER, NEW;
-PROCEDURE^ GetMedium(mediumStr: ARRAY OF CHAR): SHORTINT;
-PROCEDURE^ GetPseudoPage(pseudoPageStr: ARRAY OF CHAR): SHORTINT;
-PROCEDURE^ GetTermUnit(unitStr: ARRAY OF CHAR): SHORTINT;
-PROCEDURE^ ComputeRGB(VAR s: ARRAY OF CHAR): INTEGER;
-PROCEDURE^ HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: INTEGER);
+PROCEDURE^ (this: Parser) ParseRGB(hasAlpha: BOOLEAN): LONGINT, NEW;
+PROCEDURE^ GetMedium(mediumStr: ARRAY OF CHAR): INTEGER;
+PROCEDURE^ GetPseudoPage(pseudoPageStr: ARRAY OF CHAR): INTEGER;
+PROCEDURE^ GetTermUnit(unitStr: ARRAY OF CHAR): INTEGER;
+PROCEDURE^ ComputeRGB(VAR s: ARRAY OF CHAR): LONGINT;
+PROCEDURE^ HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: LONGINT);
 
 PROCEDURE (this: Parser) Init*(scanner: Scanner.Scanner; importLoc: Files.Locator), NEW;
 BEGIN
@@ -538,11 +538,11 @@ BEGIN
 	RETURN expr
 END ParseExpr;
 
-PROCEDURE (this: Parser) ParseRGB(hasAlpha: BOOLEAN): INTEGER, NEW;
-	VAR r, g, b, a: INTEGER;
+PROCEDURE (this: Parser) ParseRGB(hasAlpha: BOOLEAN): LONGINT, NEW;
+	VAR r, g, b, a: LONGINT;
 	
-	PROCEDURE ParseAndEval(): INTEGER; (* simplified interpreter *)
-		VAR term: CSS.Term; val: INTEGER;
+	PROCEDURE ParseAndEval(): LONGINT; (* simplified interpreter *)
+		VAR term: CSS.Term; val: LONGINT;
 	BEGIN
 		term := this.ParseExpr();
 		IF (term # NIL) & (term.GetOperator() = CSS.Undefined) & (term.GetUnaryOperator() = CSS.Plus) THEN
@@ -592,7 +592,7 @@ BEGIN
 	this.scanner.Scan()
 END IgnoreKeyword;
 
-PROCEDURE GetMedium(mediumStr: ARRAY OF CHAR): SHORTINT;
+PROCEDURE GetMedium(mediumStr: ARRAY OF CHAR): INTEGER;
 BEGIN
 	IF mediumStr = 'all' THEN RETURN CSS.All
 	ELSIF mediumStr = 'aural' THEN RETURN CSS.Aural
@@ -608,7 +608,7 @@ BEGIN
 	END
 END GetMedium;
 
-PROCEDURE GetPseudoPage(pseudoPageStr: ARRAY OF CHAR): SHORTINT;
+PROCEDURE GetPseudoPage(pseudoPageStr: ARRAY OF CHAR): INTEGER;
 BEGIN
 	IF pseudoPageStr = 'left' THEN RETURN CSS.Left
 	ELSIF pseudoPageStr = 'right' THEN RETURN CSS.Right
@@ -617,7 +617,7 @@ BEGIN
 END
 END GetPseudoPage;
 
-(*	PROCEDURE GetPseudoType(typeStr: ARRAY OF CHAR): SHORTINT;
+(*	PROCEDURE GetPseudoType(typeStr: ARRAY OF CHAR): INTEGER;
 BEGIN
 	IF typeStr = 'first-child' THEN RETURN CSS.FirstChild
 	ELSIF typeStr = 'link' THEN RETURN CSS.Link
@@ -633,8 +633,8 @@ BEGIN
 	END
 END GetPseudoType;*)
 
-PROCEDURE GetTermUnit(unitStr: ARRAY OF CHAR): SHORTINT;
-	VAR unit: SHORTINT;
+PROCEDURE GetTermUnit(unitStr: ARRAY OF CHAR): INTEGER;
+	VAR unit: INTEGER;
 BEGIN
 	unit := CSS.Undefined;
 	CASE LEN(unitStr$) OF
@@ -667,8 +667,8 @@ BEGIN
 	RETURN unit
 END GetTermUnit;
 
-PROCEDURE ComputeRGB(VAR s: ARRAY OF CHAR): INTEGER;
-	VAR col: INTEGER; r, g, b, a: INTEGER;
+PROCEDURE ComputeRGB(VAR s: ARRAY OF CHAR): LONGINT;
+	VAR col: LONGINT; r, g, b, a: LONGINT;
 BEGIN
 	HexStrToInt(s, col);
 	IF (LEN(s$) = 6) OR (LEN(s$) = 8) THEN
@@ -681,8 +681,8 @@ BEGIN
 	END
 END ComputeRGB;
 
-PROCEDURE HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: INTEGER);
-	VAR i, d: INTEGER; ch: CHAR;
+PROCEDURE HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: LONGINT);
+	VAR i, d: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; ch := str[0];
 	WHILE (ch # 0X) & (ch <= " ") DO

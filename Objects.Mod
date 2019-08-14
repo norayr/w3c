@@ -17,14 +17,14 @@ TYPE
 
 	List* = POINTER TO LIMITED RECORD (Collection)
 		first, last: ListElem;
-		nofElems: INTEGER;
+		nofElems: LONGINT;
 	END;
 	
 	PTRArray* = POINTER TO ARRAY OF ANYPTR;
 	
 	ArrayCollection* = POINTER TO LIMITED RECORD (Collection)
 		elems: PTRArray;
-		nofElems: INTEGER;
+		nofElems: LONGINT;
 	END;
 
 	Enumerator* = POINTER TO ABSTRACT RECORD END;
@@ -38,13 +38,13 @@ TYPE
 
 	ArrayEnumerator* = POINTER TO LIMITED RECORD (Enumerator)
 		array: PTRArray;
-		current: INTEGER;
+		current: LONGINT;
 	END;
 
 	ArrayDictEnumerator* = POINTER TO LIMITED RECORD (DictEnumerator)
 		keys: StringArray;
 		elems: PTRArray;
-		current: INTEGER;
+		current: LONGINT;
 	END;
 
 	Dictionary* = POINTER TO ABSTRACT RECORD END;
@@ -52,7 +52,7 @@ TYPE
 	StringArray = POINTER TO ARRAY OF String;
 
 	ArrayDict* = POINTER TO LIMITED RECORD (Dictionary)
-		nofElems: INTEGER;
+		nofElems: LONGINT;
 		keys: StringArray;
 		elems: PTRArray;
 	END;
@@ -63,7 +63,7 @@ PROCEDURE^ (this: ArrayEnumerator) Init*(array: PTRArray), NEW;
 
 (* ------ Collection ------ *)
 
-PROCEDURE (this: Collection) GetNumberOfElements*(): INTEGER, NEW, ABSTRACT;
+PROCEDURE (this: Collection) GetNumberOfElements*(): LONGINT, NEW, ABSTRACT;
 
 PROCEDURE (this: Collection) GetEnumerator*(): Enumerator, NEW, ABSTRACT;
 
@@ -88,7 +88,7 @@ BEGIN
 	this.nofElems := 0
 END Init;
 
-PROCEDURE (this: List) GetNumberOfElements*(): INTEGER;
+PROCEDURE (this: List) GetNumberOfElements*(): LONGINT;
 BEGIN
 	RETURN this.nofElems
 END GetNumberOfElements;
@@ -143,7 +143,7 @@ BEGIN
 	NEW(this.elems, 1);
 END Init;
 
-PROCEDURE (this: ArrayCollection) GetNumberOfElements*(): INTEGER;
+PROCEDURE (this: ArrayCollection) GetNumberOfElements*(): LONGINT;
 BEGIN
 	RETURN this.nofElems
 END GetNumberOfElements;
@@ -156,7 +156,7 @@ BEGIN
 END GetEnumerator;
 
 PROCEDURE (this: ArrayCollection) Grow, NEW;
-	VAR i: INTEGER; oldElems: PTRArray;
+	VAR i: LONGINT; oldElems: PTRArray;
 BEGIN
 	oldElems := this.elems;
 	NEW(this.elems, 2 * LEN(this.elems));
@@ -175,7 +175,7 @@ BEGIN
 END Add;
 
 PROCEDURE (this: ArrayCollection) Remove*(p: ANYPTR);
-	VAR i: INTEGER;
+	VAR i: LONGINT;
 BEGIN
 	i := 0;
 	WHILE (i < this.nofElems) & (this.elems[i] # p) DO
@@ -189,7 +189,7 @@ BEGIN
 	END
 END Remove;
 
-PROCEDURE (this: ArrayCollection) GetElement*(i: INTEGER): ANYPTR, NEW;
+PROCEDURE (this: ArrayCollection) GetElement*(i: LONGINT): ANYPTR, NEW;
 BEGIN
 	IF (0 <= i) & (i < this.nofElems) THEN RETURN this.elems[i]
 	ELSE RETURN NIL
@@ -197,7 +197,7 @@ BEGIN
 END GetElement;
 
 PROCEDURE (this: ArrayCollection) Invert(ptr1, ptr2: ANYPTR): BOOLEAN, NEW;
-	VAR pos1, pos2, i: INTEGER; ptr: ANYPTR;
+	VAR pos1, pos2, i: LONGINT; ptr: ANYPTR;
 BEGIN
 	i := 0; pos1 := -1; pos2 := -1;
 	WHILE (i < this.nofElems) & ((pos1 < 0) OR (pos2 < 0)) DO
@@ -212,8 +212,8 @@ BEGIN
 	RETURN FALSE
 END Invert;
 
-PROCEDURE (this: ArrayCollection) GetElementPos*(ptr: ANYPTR): INTEGER, NEW;
-	VAR i: INTEGER;
+PROCEDURE (this: ArrayCollection) GetElementPos*(ptr: ANYPTR): LONGINT, NEW;
+	VAR i: LONGINT;
 BEGIN
 	WHILE i < this.nofElems DO
 		IF this.elems[i] = ptr THEN RETURN i END;
@@ -222,7 +222,7 @@ BEGIN
 	RETURN -1
 END GetElementPos;
 
-PROCEDURE (this: ArrayCollection) MoveUp*(ptr: ANYPTR; i: INTEGER): BOOLEAN, NEW;
+PROCEDURE (this: ArrayCollection) MoveUp*(ptr: ANYPTR; i: LONGINT): BOOLEAN, NEW;
 	VAR p: ANYPTR;
 BEGIN
 	IF ptr # NIL THEN i := this.GetElementPos(ptr) END;
@@ -233,7 +233,7 @@ BEGIN
 	RETURN FALSE
 END MoveUp;
 
-PROCEDURE (this: ArrayCollection) MoveDown*(ptr: ANYPTR; i: INTEGER): BOOLEAN, NEW;
+PROCEDURE (this: ArrayCollection) MoveDown*(ptr: ANYPTR; i: LONGINT): BOOLEAN, NEW;
 	VAR p: ANYPTR;
 BEGIN
 	IF ptr # NIL THEN i := this.GetElementPos(ptr) END;
@@ -318,7 +318,7 @@ END Reset;
 
 (* ------ Dictionary ------ *)
 
-PROCEDURE (this: Dictionary) GetNumberOfElements*(): INTEGER, NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) GetNumberOfElements*(): LONGINT, NEW, ABSTRACT;
 
 PROCEDURE (this: Dictionary) Get*(IN key: ARRAY OF CHAR): ANYPTR, NEW, ABSTRACT;
 
@@ -374,13 +374,13 @@ BEGIN
 	NEW(this.elems, 16)
 END Init;
 
-PROCEDURE (this: ArrayDict) GetNumberOfElements*(): INTEGER;
+PROCEDURE (this: ArrayDict) GetNumberOfElements*(): LONGINT;
 BEGIN
 	RETURN this.nofElems
 END GetNumberOfElements;
 
 PROCEDURE (this: ArrayDict) Get*(IN key: ARRAY OF CHAR): ANYPTR;
-	VAR i: INTEGER;
+	VAR i: LONGINT;
 BEGIN
 	i := 0;
 	WHILE (i < this.nofElems) & (this.keys[i]^ # key) DO
@@ -399,7 +399,7 @@ BEGIN
 END GetEnumerator;
 
 PROCEDURE (this: ArrayDict) Grow, NEW;
-	VAR i: INTEGER; oldKeys: StringArray; oldElems: PTRArray;
+	VAR i: LONGINT; oldKeys: StringArray; oldElems: PTRArray;
 BEGIN
 	oldKeys := this.keys; oldElems := this.elems;
 	NEW(this.keys, 2 * LEN(this.keys)); NEW(this.elems, 2 * LEN(this.elems));
@@ -421,7 +421,7 @@ BEGIN
 END Add;
 
 PROCEDURE (this: ArrayDict) Remove*(IN key: ARRAY OF CHAR);
-	VAR i: INTEGER;
+	VAR i: LONGINT;
 BEGIN
 	i := 0;
 	WHILE (i < this.nofElems) & (this.keys[i]^ # key) DO

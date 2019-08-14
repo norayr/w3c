@@ -22,16 +22,16 @@ TYPE
 	StringArray* = POINTER TO ARRAY OF String;
 	
 	DynamicString* = POINTER TO EXTENSIBLE RECORD
-		length-: INTEGER; (* current length of string excluding 0X *)
+		length-: LONGINT; (* current length of string excluding 0X *)
 		buffer: String; (* { (buffer # NIL) & (LEN(buffer) = bufferSize) & LEN(buffer$) = length } *)
-		bufferSize: INTEGER; (* {bufferSize >= InitialSize} *)
+		bufferSize: LONGINT; (* {bufferSize >= InitialSize} *)
 	END;
 	
 	HashTableEntries = POINTER TO HashTableEntry;
 	
 	HashTableEntry = RECORD
 		value: String;
-		hashcode: INTEGER;
+		hashcode: LONGINT;
 		next: HashTableEntries; (* for direct chaining of collisions, sorted in ascending hashcode order; 
 												note that hashtable^[i] is outside of the sorted collison list *)
 	END;
@@ -39,9 +39,9 @@ TYPE
 	HashTable = POINTER TO ARRAY OF HashTableEntry;
 	
 	Pool* = POINTER TO RECORD
-		nofEntries-: INTEGER; (* the number of entries added to the pool's hash table *)
+		nofEntries-: LONGINT; (* the number of entries added to the pool's hash table *)
 		hashtable: HashTable; (* the pool's hash table; doubles its size in case of exceeding the threshold *)
-		threshold: INTEGER; (* threshold = LEN(hashtable) * LoadFactor & nofEntries <= threshold *)
+		threshold: LONGINT; (* threshold = LEN(hashtable) * LoadFactor & nofEntries <= threshold *)
 	END;
 
 
@@ -61,7 +61,7 @@ BEGIN
 	this.Clear
 END Init;
 
-PROCEDURE (this: DynamicString) AdjustBufferSize(minSize: INTEGER), NEW;
+PROCEDURE (this: DynamicString) AdjustBufferSize(minSize: LONGINT), NEW;
 	VAR newBuffer: String;
 BEGIN
 	IF minSize >= this.bufferSize THEN
@@ -72,7 +72,7 @@ BEGIN
 	END
 END AdjustBufferSize;
 
-PROCEDURE (this: DynamicString) Put*(ch: CHAR; at: INTEGER), NEW;
+PROCEDURE (this: DynamicString) Put*(ch: CHAR; at: LONGINT), NEW;
 BEGIN
 	IF ch = 0X THEN (* truncate *)
 		IF at < this.length THEN this.buffer[at] := 0X; this.length := at END
@@ -85,7 +85,7 @@ BEGIN
 	END
 END Put;
 
-PROCEDURE (this: DynamicString) Get*(at: INTEGER): CHAR, NEW;
+PROCEDURE (this: DynamicString) Get*(at: LONGINT): CHAR, NEW;
 BEGIN
 	IF at >= this.length THEN
 		RETURN 0X
@@ -105,7 +105,7 @@ BEGIN
 END AppendChar;
 
 PROCEDURE (this: DynamicString) Append*(IN str: ARRAY OF CHAR), NEW;
-	VAR strLength: INTEGER;
+	VAR strLength: LONGINT;
 BEGIN
 	strLength := LEN(str$);
 	IF (this.length + strLength + 1 >= this.bufferSize) THEN this.AdjustBufferSize(this.length + strLength + 1) END;
@@ -113,7 +113,7 @@ BEGIN
 	INC(this.length, strLength)
 END Append;
 
-PROCEDURE (this: DynamicString) AppendInt*(x: LONGINT), NEW;
+PROCEDURE (this: DynamicString) AppendInt*(x: HUGEINT), NEW;
 	VAR numStr: ARRAY 24 OF CHAR;
 BEGIN
 	Strings.IntToString(x, numStr); this.Append(numStr)
@@ -124,8 +124,8 @@ BEGIN
 	this.AppendChar(CR)
 END AppendLn;
 
-PROCEDURE (this: DynamicString) Extract*(offset, len: INTEGER): String, NEW;
-	VAR s: String; i: INTEGER;
+PROCEDURE (this: DynamicString) Extract*(offset, len: LONGINT): String, NEW;
+	VAR s: String; i: LONGINT;
 BEGIN
 	IF offset < this.length THEN
 		IF offset + len > this.length THEN len := this.length - offset END;
@@ -166,8 +166,8 @@ BEGIN
 END FromString;
 
 (** Copy <len> characters starting at <offset> from string <ds> into this dynamic string*)
-PROCEDURE (this: DynamicString) CopyFrom*(ds: DynamicString; offset, len: INTEGER), NEW;
-	VAR i: INTEGER;
+PROCEDURE (this: DynamicString) CopyFrom*(ds: DynamicString; offset, len: LONGINT), NEW;
+	VAR i: LONGINT;
 BEGIN
 	ASSERT((ds # NIL) & (offset >= 0) & (len >= 0));
 	IF (offset < this.length) THEN
@@ -185,7 +185,7 @@ BEGIN
 END CopyFrom;
 
 PROCEDURE (this: DynamicString) EqualsTo*(IN string: ARRAY OF CHAR; ignoreCase: BOOLEAN): BOOLEAN, NEW;
-	VAR len: INTEGER; result: BOOLEAN; i: INTEGER;
+	VAR len: LONGINT; result: BOOLEAN; i: LONGINT;
 BEGIN
 	len := LEN(string$);
 	result := (len = this.length);
@@ -209,7 +209,7 @@ END EqualsTo;
 (* JT: this Pool version uses a growing hashtable and an improved hash function *)
 
 PROCEDURE (this: Pool) Clear*, NEW;
-	VAR i: INTEGER; empty: HashTableEntry;
+	VAR i: LONGINT; empty: HashTableEntry;
 BEGIN
 	empty.value := NIL; empty.hashcode := 0; empty.next := NIL;
 	FOR i := 0 TO LEN(this.hashtable) - 1 DO
@@ -225,8 +225,8 @@ BEGIN
 	NEW(this.hashtable, InitialCapacity)
 END Init;
 
-PROCEDURE Hash(IN s: ARRAY OF CHAR): INTEGER;
-	VAR hashcode, i: INTEGER; ch: CHAR;
+PROCEDURE Hash(IN s: ARRAY OF CHAR): LONGINT;
+	VAR hashcode, i: LONGINT; ch: CHAR;
 BEGIN
 	hashcode := 0; i := 0; ch := s[0];
 	WHILE (ch # 0X) DO
@@ -236,7 +236,7 @@ BEGIN
 	RETURN hashcode
 END Hash;
 
-PROCEDURE Find(IN s: ARRAY OF CHAR; hashcode: INTEGER; IN entry: HashTableEntry): String;
+PROCEDURE Find(IN s: ARRAY OF CHAR; hashcode: LONGINT; IN entry: HashTableEntry): String;
 	VAR e: HashTableEntries;
 BEGIN
 	IF entry.value # NIL THEN
@@ -253,7 +253,7 @@ BEGIN
 	RETURN NIL
 END Find;
 
-PROCEDURE Add(value: String; hashcode: INTEGER; VAR entry: HashTableEntry; VAR free: HashTableEntries);
+PROCEDURE Add(value: String; hashcode: LONGINT; VAR entry: HashTableEntry; VAR free: HashTableEntries);
 	VAR e, n, p: HashTableEntries;
 BEGIN
 	IF entry.value = NIL THEN
@@ -275,7 +275,7 @@ BEGIN
 END Add;
 
 PROCEDURE MoveEntries(IN entry: HashTableEntry; newht: HashTable; VAR free: HashTableEntries);
-	VAR len: INTEGER; e, n: HashTableEntries;
+	VAR len: LONGINT; e, n: HashTableEntries;
 BEGIN
 	IF entry.value # NIL THEN
 		len := LEN(newht);
@@ -289,7 +289,7 @@ BEGIN
 END MoveEntries;
 
 PROCEDURE (this: Pool) Grow(), NEW;
-	VAR newht: HashTable; i: INTEGER; free: HashTableEntries;
+	VAR newht: HashTable; i: LONGINT; free: HashTableEntries;
 BEGIN
 	NEW(newht, LEN(this.hashtable) * 2); free := NIL;
 	FOR i := 0 TO LEN(this.hashtable) - 1 DO
@@ -301,7 +301,7 @@ END Grow;
 
 (** Get string from pool. If the string is not contained in the pool, a copy of it is added to the pool *)
 PROCEDURE (this: Pool) Get*(ds: DynamicString): String, NEW;
-	VAR string: String; hashcode, entry: INTEGER; free: HashTableEntries;
+	VAR string: String; hashcode, entry: LONGINT; free: HashTableEntries;
 BEGIN
 	ASSERT(ds # NIL);
 	hashcode := Hash(ds.buffer);
@@ -346,8 +346,8 @@ BEGIN
 END NewPool;
 
 (* returns the number of occurences of pat within string *)
-PROCEDURE Count* (IN string, pat: ARRAY OF CHAR): INTEGER;
-	VAR count, patLen, pos: INTEGER;
+PROCEDURE Count* (IN string, pat: ARRAY OF CHAR): LONGINT;
+	VAR count, patLen, pos: LONGINT;
 BEGIN
 	ASSERT(pat # "", 20);
 	count := 0; patLen := LEN(pat$); Strings.Find (string, pat, 0, pos);
@@ -362,10 +362,10 @@ END Count;
  *      StringArray[i] # NIL (0 <= i <= LEN(Result) - 1)
 *)
 PROCEDURE Split*(IN string, separator: ARRAY OF CHAR): StringArray;
-	VAR count, sepLen, index, pos, next: INTEGER; result: StringArray;
+	VAR count, sepLen, index, pos, next: LONGINT; result: StringArray;
 	
-	PROCEDURE Copy (IN src: ARRAY OF CHAR; pos, len: INTEGER; OUT dst: ARRAY OF CHAR);
-		VAR i: INTEGER;
+	PROCEDURE Copy (IN src: ARRAY OF CHAR; pos, len: LONGINT; OUT dst: ARRAY OF CHAR);
+		VAR i: LONGINT;
 	BEGIN
 		FOR i := 0 TO len - 1 DO dst[i] := src[pos + i] END;
 		dst[len] := 0X

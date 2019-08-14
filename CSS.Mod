@@ -114,14 +114,14 @@ TYPE
 	END;
 
 	Selector* = POINTER TO EXTENSIBLE RECORD
-		a, b, c: INTEGER;
+		a, b, c: LONGINT;
 		simpleSelectors: Objects.Collection;
 		lastSimpleSel: SimpleSelector;
 	END;
 
 	SimpleSelector* = POINTER TO EXTENSIBLE RECORD
 		next: SimpleSelector;
-		combinator: SHORTINT;
+		combinator: INTEGER;
 		elementName: String;
 		subSelectors: Objects.Collection;
 	END;
@@ -138,7 +138,7 @@ TYPE
 
 	Attribute* = POINTER TO EXTENSIBLE RECORD (SubSelector)
 		name, value: String;
-		relation: SHORTINT;
+		relation: INTEGER;
 	END;
 
 	Pseudo* = POINTER TO EXTENSIBLE RECORD (SubSelector)
@@ -153,18 +153,18 @@ TYPE
 	END;
 	
 	Term* = POINTER TO EXTENSIBLE RECORD
-		operator, unaryOperator: SHORTINT;
-		type: SHORTINT;
-		intVal: INTEGER;
+		operator, unaryOperator: INTEGER;
+		type: INTEGER;
+		intVal: LONGINT;
 		realVal: REAL;
 		stringVal: String;
-		unit: SHORTINT;
+		unit: INTEGER;
 		expr: Objects.Collection;	(* if term is a function *)
 	END;
 	
 	Page* = POINTER TO EXTENSIBLE RECORD
 		selector: String;
-		pseudoPage: SHORTINT;
+		pseudoPage: INTEGER;
 		declarations: Objects.Collection;
 	END;
 	
@@ -176,8 +176,8 @@ TYPE
 PROCEDURE^ (this: Declaration) IsImportant*(): BOOLEAN, NEW;
 PROCEDURE^ (this: SimpleSelector) GetElementName*(): String, NEW;
 PROCEDURE^ (this: SimpleSelector) GetSubSelectors*(): Objects.Enumerator, NEW;
-PROCEDURE^ IntToRGBA*(color: INTEGER; VAR r, g, b, a: SHORTINT);
-PROCEDURE^ RGBAToInt*(r, g, b, a: SHORTINT; VAR color: INTEGER);
+PROCEDURE^ IntToRGBA*(color: LONGINT; VAR r, g, b, a: INTEGER);
+PROCEDURE^ RGBAToInt*(r, g, b, a: INTEGER; VAR color: LONGINT);
 
 
 (* ------ StyleSheet ------ *)
@@ -245,12 +245,12 @@ BEGIN
 	RETURN this.media
 END GetMedia;
 
-PROCEDURE (this: RuleSet) IsMediumSupported*(medium: SHORTINT): BOOLEAN, NEW;
+PROCEDURE (this: RuleSet) IsMediumSupported*(medium: INTEGER): BOOLEAN, NEW;
 BEGIN
 	RETURN medium IN this.media
 END IsMediumSupported;
 
-PROCEDURE (this: RuleSet) AddMedium*(medium: SHORTINT), NEW;
+PROCEDURE (this: RuleSet) AddMedium*(medium: INTEGER), NEW;
 BEGIN
 	IF medium IN {All, Aural, Braille, Embossed, Handheld, Print, Projection, Screen, TTY, TV} THEN
 		IF medium # All THEN EXCL(this.media, All) END;
@@ -307,7 +307,7 @@ BEGIN
 	this.simpleSelectors := Objects.NewArrayCollection();
 END Init;
 
-PROCEDURE (this: Selector) GetSpecifity*(VAR a, b, c: INTEGER), NEW;
+PROCEDURE (this: Selector) GetSpecifity*(VAR a, b, c: LONGINT), NEW;
 BEGIN
 	a := this.a; b := this.b; c := this.c
 END GetSpecifity;
@@ -350,12 +350,12 @@ BEGIN
 	RETURN this.next
 END GetNext;
 
-PROCEDURE (this: SimpleSelector) GetCombinator*(): SHORTINT, NEW;
+PROCEDURE (this: SimpleSelector) GetCombinator*(): INTEGER, NEW;
 BEGIN
 	RETURN this.combinator
 END GetCombinator;
 
-PROCEDURE (this: SimpleSelector) SetCombinator*(combinator: SHORTINT), NEW;
+PROCEDURE (this: SimpleSelector) SetCombinator*(combinator: INTEGER), NEW;
 BEGIN
 	IF combinator IN {Descendant, Child, Sibling} THEN
 		this.combinator := combinator
@@ -426,12 +426,12 @@ BEGIN
 	this.name := name
 END SetName;
 
-PROCEDURE (this: Attribute) GetRelation*(): SHORTINT, NEW;
+PROCEDURE (this: Attribute) GetRelation*(): INTEGER, NEW;
 BEGIN
 	RETURN this.relation
 END GetRelation;
 
-PROCEDURE (this: Attribute) SetRelation*(relation: SHORTINT), NEW;
+PROCEDURE (this: Attribute) SetRelation*(relation: INTEGER), NEW;
 BEGIN
 	IF relation IN {Equal, Includes, Dashmatch} THEN
 		this.relation := relation
@@ -531,36 +531,36 @@ BEGIN
 	this.intVal := 0; this.realVal := 0.0
 END Init;
 
-PROCEDURE (this: Term) GetOperator*(): SHORTINT, NEW;
+PROCEDURE (this: Term) GetOperator*(): INTEGER, NEW;
 BEGIN
 	RETURN this.operator
 END GetOperator;
 
-PROCEDURE (this: Term) SetOperator*(operator: SHORTINT), NEW;
+PROCEDURE (this: Term) SetOperator*(operator: INTEGER), NEW;
 BEGIN
 	IF operator IN {Add, Sub, Times, Slash, Seq} THEN
 		this.operator := operator
 	END
 END SetOperator;
 
-PROCEDURE (this: Term) GetUnaryOperator*(): SHORTINT, NEW;
+PROCEDURE (this: Term) GetUnaryOperator*(): INTEGER, NEW;
 BEGIN
 	RETURN this.unaryOperator
 END GetUnaryOperator;
 
-PROCEDURE (this: Term) SetUnaryOperator*(unaryOperator: SHORTINT), NEW;
+PROCEDURE (this: Term) SetUnaryOperator*(unaryOperator: INTEGER), NEW;
 BEGIN
 	IF (unaryOperator = Minus) OR (unaryOperator = Plus) THEN
 		this.unaryOperator := unaryOperator
 	END
 END SetUnaryOperator;
 
-PROCEDURE (this: Term) GetType*(): SHORTINT, NEW;
+PROCEDURE (this: Term) GetType*(): INTEGER, NEW;
 BEGIN
 	RETURN this.type
 END GetType;
 
-PROCEDURE (this: Term) SetType*(type: SHORTINT), NEW;
+PROCEDURE (this: Term) SetType*(type: INTEGER), NEW;
 BEGIN
 	CASE type OF
 	| IntNumber, Color, Ident: this.realVal := 0.0; this.stringVal := NIL; this.unit := Undefined; this.expr := NIL
@@ -576,12 +576,12 @@ BEGIN
 	this.type := type
 END SetType;
 
-PROCEDURE (this: Term) GetIntVal*(): INTEGER, NEW;
+PROCEDURE (this: Term) GetIntVal*(): LONGINT, NEW;
 BEGIN
 	RETURN this.intVal
 END GetIntVal;
 
-PROCEDURE (this: Term) SetIntVal*(intVal: INTEGER), NEW;
+PROCEDURE (this: Term) SetIntVal*(intVal: LONGINT), NEW;
 BEGIN
 	this.intVal := intVal
 END SetIntVal;
@@ -611,17 +611,17 @@ BEGIN
 	RETURN (this.type = StringIdent) & (this.stringVal # NIL) & (this.stringVal^ = ident)
 END IsStringIdent;
 
-PROCEDURE (this: Term) IsIdent*(ident: INTEGER): BOOLEAN, NEW;
+PROCEDURE (this: Term) IsIdent*(ident: LONGINT): BOOLEAN, NEW;
 BEGIN
 	RETURN (this.type = Ident) & (this.intVal = ident)
 END IsIdent;
 
-PROCEDURE (this: Term) GetUnit*(): SHORTINT, NEW;
+PROCEDURE (this: Term) GetUnit*(): INTEGER, NEW;
 BEGIN
 	RETURN this.unit
 END GetUnit;
 
-PROCEDURE (this: Term) SetUnit*(unit: SHORTINT), NEW;
+PROCEDURE (this: Term) SetUnit*(unit: INTEGER), NEW;
 BEGIN
 	IF unit IN {em, ex, ch, rem, vw, vh, vmin, vmax, px, in, cm, mm, pt, pc, deg, grad, rad, ms, s, Hz, kHz} THEN
 		this.unit := unit
@@ -649,12 +649,12 @@ BEGIN
 	RETURN (this.type IN {IntDimension, RealDimension}) & (this.unit IN {Hz, kHz})
 END IsFrequency;
 
-PROCEDURE (this: Term) GetColor*(VAR r, g, b, a: SHORTINT), NEW;
+PROCEDURE (this: Term) GetColor*(VAR r, g, b, a: INTEGER), NEW;
 BEGIN
 	IntToRGBA(this.intVal, r, g, b, a)
 END GetColor;
 
-PROCEDURE (this: Term) SetColor*(r, g, b, a: SHORTINT), NEW;
+PROCEDURE (this: Term) SetColor*(r, g, b, a: INTEGER), NEW;
 BEGIN
 	RGBAToInt(r, g, b, a, this.intVal)
 END SetColor;
@@ -712,12 +712,12 @@ BEGIN
 	this.selector := selector
 END SetSelector;
 
-PROCEDURE (this: Page) GetPseudoPage*(): SHORTINT, NEW;
+PROCEDURE (this: Page) GetPseudoPage*(): INTEGER, NEW;
 BEGIN
 	RETURN this.pseudoPage
 END GetPseudoPage;
 
-PROCEDURE (this: Page) SetPseudoPage*(pseudoPage: SHORTINT), NEW;
+PROCEDURE (this: Page) SetPseudoPage*(pseudoPage: INTEGER), NEW;
 BEGIN
 	IF pseudoPage IN {Left, Right, First} THEN
 		this.pseudoPage := pseudoPage
@@ -753,7 +753,7 @@ BEGIN
 END AddDeclaration;
 
 
-PROCEDURE IntToRGBA*(color: INTEGER; VAR r, g, b, a: SHORTINT);
+PROCEDURE IntToRGBA*(color: LONGINT; VAR r, g, b, a: INTEGER);
 BEGIN
 	a := SHORT(color DIV 1000000H);
 	r := SHORT(color DIV 10000H MOD 100H);
@@ -761,7 +761,7 @@ BEGIN
 	b := SHORT(color MOD 100H)
 END IntToRGBA;
 
-PROCEDURE RGBAToInt*(r, g, b, a: SHORTINT; VAR color: INTEGER);
+PROCEDURE RGBAToInt*(r, g, b, a: INTEGER; VAR color: LONGINT);
 BEGIN
 	color := ASH(a, 24) + ASH(r, 16) + ASH(g, 8) + b
 END RGBAToInt;

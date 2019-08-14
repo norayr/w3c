@@ -82,25 +82,25 @@ MODULE W3cHtmlImporter;
 			parent, dsc, root: Context;
 			e: DOM.Element;
 			attrSet: SET; (* out param of ProcessAttributes *)
-			display: BYTE;
+			display: SHORTINT;
 			pre: BOOLEAN; (* preserve white space; only used for PRE *)
-			tabSize: SHORTINT; (* number of spaces used for TAB in PRE element *)
-			listStyleType: BYTE;
+			tabSize: INTEGER; (* number of spaces used for TAB in PRE element *)
+			listStyleType: SHORTINT;
 			(* ruler attributes *)
-			marginTop, marginBottom, left, indent: INTEGER; opts: SET;
+			marginTop, marginBottom, left, indent: LONGINT; opts: SET;
 			(* text attributes *)
-			color, weight, size, offset: INTEGER;
+			color, weight, size, offset: LONGINT;
 			typeface-: Fonts.Typeface;
 			style-: SET;
 		END;
 	
 	VAR
-		state: INTEGER; (* lazy writer state machine *)
-		nofEmptyLines: INTEGER; (* for skipping the trailing empty lines in PRE *)
+		state: LONGINT; (* lazy writer state machine *)
+		nofEmptyLines: LONGINT; (* for skipping the trailing empty lines in PRE *)
 		paraAttr: TextModels.Attributes; (* the attributes to be used for WritePara *)
 		out: TextMappers.Formatter;
-		listNum: INTEGER;
-		maxVerticalSpace: INTEGER;
+		listNum: LONGINT;
+		maxVerticalSpace: LONGINT;
 		
 		(* caching *)
 		cssParser: CSSParsers.Parser; (* reusable parser for inline style attribute *)
@@ -152,7 +152,7 @@ MODULE W3cHtmlImporter;
 		RETURN dsc;
 	END NewContext;
 
-	PROCEDURE NewRuler(lead, left, indent: INTEGER; opts: SET): TextRulers.Ruler;
+	PROCEDURE NewRuler(lead, left, indent: LONGINT; opts: SET): TextRulers.Ruler;
 		VAR new: TextRulers.Ruler;
 	BEGIN
 		new := TextRulers.dir.New(TextRulers.dir.NewStyle(TextRulers.dir.attr));
@@ -171,7 +171,7 @@ MODULE W3cHtmlImporter;
 	END NewRuler;
 	
 	PROCEDURE GetEffectiveRulerAttr(): TextRulers.Attributes;
-		VAR text: TextModels.Model;  last: TextRulers.Ruler; rpos: INTEGER; a: TextRulers.Attributes;
+		VAR text: TextModels.Model;  last: TextRulers.Ruler; rpos: LONGINT; a: TextRulers.Attributes;
 	BEGIN
 		text := out.rider.Base();
 		TextRulers.GetValidRuler(text, text.Length(), -1, last, rpos);
@@ -195,7 +195,7 @@ MODULE W3cHtmlImporter;
 	END OutRuler;
 
 	PROCEDURE OutLine;
-		VAR i: INTEGER;
+		VAR i: LONGINT;
 	BEGIN
 		FOR i := 1 TO nofEmptyLines DO out.WriteLn END; (* TODO which attr?? *)
 		nofEmptyLines := 0
@@ -218,7 +218,7 @@ MODULE W3cHtmlImporter;
 	END WriteSpace;
 
 	PROCEDURE WriteChar(ch: CHAR; ctx: Context);
-		VAR i: INTEGER;
+		VAR i: LONGINT;
 	BEGIN
 		IF ch > " " THEN (* Text *)
 			IF state # Text THEN WriteSpace(ctx) END;
@@ -254,7 +254,7 @@ MODULE W3cHtmlImporter;
 	
 	(* writing ruler/para is delayed until required for follow-up Text.
 		The current ruler style with a max. vertical space of all consumed rulers will be used then. *)
-	PROCEDURE WritePara(verticalSpace: INTEGER);
+	PROCEDURE WritePara(verticalSpace: LONGINT);
 	BEGIN
 		(* a Para immediately following a Tab must be ignored because it would introduce a new line e.g. in a list.
 		In order to continue after a list or table with an empty element, the state must be set to Text. *)
@@ -281,7 +281,7 @@ MODULE W3cHtmlImporter;
 	END WriteTab;
 
 	PROCEDURE SetCtxAttr (ctx: Context);
-		VAR i: INTEGER; ch, nch: CHAR; rider: TextModels.Writer; attr: TextModels.Attributes;
+		VAR i: LONGINT; ch, nch: CHAR; rider: TextModels.Writer; attr: TextModels.Attributes;
 	BEGIN
 		rider := out.rider; attr := rider.attr;
 		IF ctx.size # attr.font.size THEN
@@ -305,7 +305,7 @@ MODULE W3cHtmlImporter;
 	END SetCtxAttr;
 
 	PROCEDURE WriteText(IN str: ARRAY OF CHAR; ctx: Context);
-		VAR i: INTEGER; ch, nch: CHAR; rider: TextModels.Writer; attr: TextModels.Attributes;
+		VAR i: LONGINT; ch, nch: CHAR; rider: TextModels.Writer; attr: TextModels.Attributes;
 	BEGIN
 		i := 0; ch := str[0]; SetCtxAttr(ctx);
 		WHILE ch # 0X DO
@@ -316,8 +316,8 @@ MODULE W3cHtmlImporter;
 		END
 	END WriteText;
 
-	PROCEDURE WriteRuler (ruler: TextRulers.Ruler; verticalSpace, nextState: INTEGER; ctx: Context);
-		VAR len, rpos: INTEGER; t: TextModels.Model; tr: TextRulers.Ruler; p: TextRulers.Prop;
+	PROCEDURE WriteRuler (ruler: TextRulers.Ruler; verticalSpace, nextState: LONGINT; ctx: Context);
+		VAR len, rpos: LONGINT; t: TextModels.Model; tr: TextRulers.Ruler; p: TextRulers.Prop;
 			rd: TextModels.Reader; ch: CHAR; a: TextRulers.Attributes; savedAttr: TextModels.Attributes;
 	BEGIN
 		maxVerticalSpace := MAX(verticalSpace, maxVerticalSpace);
@@ -346,12 +346,12 @@ MODULE W3cHtmlImporter;
 		maxVerticalSpace := 0; state := nextState; out.rider.SetAttr(savedAttr)
 	END WriteRuler;
 	
-	PROCEDURE Round (val: REAL): INTEGER;
+	PROCEDURE Round (val: REAL): LONGINT;
 	BEGIN RETURN SHORT(ENTIER(Math.Round(val)))
 	END Round;
 
-	PROCEDURE GetLength (term: CSS.Term; ctx: Context): INTEGER;
-		VAR val: REAL; unitsize: INTEGER;
+	PROCEDURE GetLength (term: CSS.Term; ctx: Context): LONGINT;
+		VAR val: REAL; unitsize: LONGINT;
 	BEGIN
 		CASE term.GetType() OF
 		| CSS.RealDimension: val := term.GetRealVal()
@@ -411,7 +411,7 @@ MODULE W3cHtmlImporter;
 	END SetTextAlign;
 
 	PROCEDURE SetMarginLeft(decl: CSS.Declaration; ctx: Context);
-		VAR term: CSS.Term; ident: String; length: INTEGER;
+		VAR term: CSS.Term; ident: String; length: LONGINT;
 	BEGIN
 		term := decl.GetTerms().GetNext()(CSS.Term);
 		IF term.IsLength() THEN length := GetLength(term, ctx)
@@ -429,7 +429,7 @@ MODULE W3cHtmlImporter;
 	END SetMarginLeft;
 
 	PROCEDURE SetMarginTop(decl: CSS.Declaration; ctx: Context);
-		VAR term: CSS.Term; ident: String; length: INTEGER;
+		VAR term: CSS.Term; ident: String; length: LONGINT;
 	BEGIN
 		term := decl.GetTerms().GetNext()(CSS.Term);
 		IF term.IsLength() THEN ctx.marginTop := GetLength(term, ctx)
@@ -446,7 +446,7 @@ MODULE W3cHtmlImporter;
 	END SetMarginTop;
 
 	PROCEDURE SetMarginBottom(decl: CSS.Declaration; ctx: Context);
-		VAR term: CSS.Term; ident: String; length: INTEGER;
+		VAR term: CSS.Term; ident: String; length: LONGINT;
 	BEGIN
 		term := decl.GetTerms().GetNext()(CSS.Term);
 		IF term.IsLength() THEN ctx.marginBottom := GetLength(term, ctx)
@@ -468,7 +468,7 @@ MODULE W3cHtmlImporter;
 	END SetMargin;
 
 	PROCEDURE SetTextIndent(decl: CSS.Declaration; ctx: Context);
-		VAR term: CSS.Term; length: INTEGER; ident: String;
+		VAR term: CSS.Term; length: LONGINT; ident: String;
 	BEGIN
 		term := decl.GetTerms().GetNext()(CSS.Term);
 		IF term.IsLength() THEN length := GetLength(term, ctx)
@@ -486,7 +486,7 @@ MODULE W3cHtmlImporter;
 
 	(* since the line height (asc, dsc) cannot be edited in BlackBox, we better ignore it.
 	PROCEDURE SetLineHeight(decl: CSS.Declaration; ctx: Context);
-		VAR term: CSS.Term; ident: String; scale: REAL; asc, dsc, w: INTEGER;
+		VAR term: CSS.Term; ident: String; scale: REAL; asc, dsc, w: LONGINT;
 	BEGIN
 		out.rider.attr.font.GetBounds(asc, dsc, w);
 		term := decl.GetTerms().GetNext()(CSS.Term);
@@ -632,12 +632,12 @@ MODULE W3cHtmlImporter;
 	
 	(* color name mapping could also be added to the CSS parser but since it may also be needed in HTML
 		attributes, we put it into the HTML importer where it serves both. *)
-	PROCEDURE MapColorName(IN ident: ARRAY OF CHAR): INTEGER;
-		VAR f: Files.File; pos, len, color, res: INTEGER;
+	PROCEDURE MapColorName(IN ident: ARRAY OF CHAR): LONGINT;
+		VAR f: Files.File; pos, len, color, res: LONGINT;
 			line, key, val: ARRAY 64 OF CHAR; red, green, blue: ARRAY 3 OF CHAR;
 			
 			PROCEDURE ReadLine(rd: Files.Reader; OUT line: ARRAY OF CHAR);
-				VAR b: BYTE; i: INTEGER;
+				VAR b: SHORTINT; i: LONGINT;
 			BEGIN
 				REPEAT rd.ReadByte(b) UNTIL (b >= ORD(" ")) OR rd.eof;
 				line[0] := CHR(b); i := 1;
@@ -673,7 +673,7 @@ MODULE W3cHtmlImporter;
 	END MapColorName;
 
 	PROCEDURE SetColorTerm(term: CSS.Term; ctx: Context);
-		VAR ident: String; color: INTEGER; red, green, blue, alpha: SHORTINT;
+		VAR ident: String; color: LONGINT; red, green, blue, alpha: INTEGER;
 	BEGIN
 		IF term.GetType() IN {CSS.Function, CSS.IntNumber, CSS.Color} THEN
 			term.GetColor(red, green, blue, alpha);
@@ -696,8 +696,8 @@ MODULE W3cHtmlImporter;
 		SetColorTerm(decl.GetTerms().GetNext()(CSS.Term), ctx)
 	END SetColor;
 
-	PROCEDURE Smaller(ctx: Context): INTEGER;
-		VAR em: INTEGER;
+	PROCEDURE Smaller(ctx: Context): LONGINT;
+		VAR em: LONGINT;
 	BEGIN
 		em := ctx.size;
 		IF em <= 11 * Fonts.point THEN RETURN em - Fonts.point
@@ -706,8 +706,8 @@ MODULE W3cHtmlImporter;
 		END
 	END Smaller;
 
-	PROCEDURE Larger(ctx: Context): INTEGER;
-		VAR em: INTEGER;
+	PROCEDURE Larger(ctx: Context): LONGINT;
+		VAR em: LONGINT;
 	BEGIN
 		em := ctx.size;
 		IF em <= 9 * Fonts.point THEN RETURN em + Fonts.point 
@@ -745,7 +745,7 @@ MODULE W3cHtmlImporter;
 	END SetFontSize;
 
 	PROCEDURE SetFontWeight(decl: CSS.Declaration; ctx: Context);
-		VAR term: CSS.Term; ident: String; weight: INTEGER;
+		VAR term: CSS.Term; ident: String; weight: LONGINT;
 	BEGIN
 		term := decl.GetTerms().GetNext()(CSS.Term); 
 		IF term.GetType() = CSS.IntNumber THEN
@@ -826,7 +826,7 @@ MODULE W3cHtmlImporter;
 	END ProcessColorAttr;
 
 	PROCEDURE ProcessSizeAttr (attrVal: String; ctx: Context);
-		VAR size, res: INTEGER;
+		VAR size, res: LONGINT;
 	BEGIN
 		IF (attrVal = NIL) OR (attrVal^ = "") THEN (*default 3*)
 			ctx.size := 12 * Fonts.point
@@ -856,14 +856,14 @@ MODULE W3cHtmlImporter;
 	END ProcessFaceAttr;
 
 	PROCEDURE ProcessStartAttr (attrVal: String; ctx: Context);
-		VAR start, res: INTEGER;
+		VAR start, res: LONGINT;
 	BEGIN
 		Strings.StringToInt(attrVal, start, res);
 		IF res = 0 THEN listNum := start; INCL(ctx.attrSet, Attr_Start) END
 	END ProcessStartAttr;
 
 	PROCEDURE ProcessTypeAttr (attrVal: String; ctx: Context);
-		VAR listStyleType: BYTE;
+		VAR listStyleType: SHORTINT;
 	BEGIN
 		IF attrVal^ = "I" THEN listStyleType := ListStyleType_UpperRoman
 		ELSIF attrVal^ = "i" THEN listStyleType := ListStyleType_LowerRoman
@@ -933,27 +933,27 @@ MODULE W3cHtmlImporter;
 		IF styleVal # NIL THEN ProcessStyleAttr(styleVal, ctx);  ProcessStyle(ctx) END
 	END ProcessAttributes;
 
-	PROCEDURE SetDefaultDisplay(display: BYTE; ctx: Context);
+	PROCEDURE SetDefaultDisplay(display: SHORTINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_Display IN ctx.attrSet) THEN ctx.display := display END
 	END SetDefaultDisplay;
 
-	PROCEDURE SetDefaultWeight(weight: INTEGER; ctx: Context);
+	PROCEDURE SetDefaultWeight(weight: LONGINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_FontWeight IN ctx.attrSet) THEN ctx.weight := weight END
 	END SetDefaultWeight;
 
-	PROCEDURE SetDefaultSize(size: INTEGER; ctx: Context);
+	PROCEDURE SetDefaultSize(size: LONGINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_FontSize IN ctx.attrSet) THEN ctx.size := size END
 	END SetDefaultSize;
 
-	PROCEDURE SetDefaultStyle(style: INTEGER; ctx: Context);
+	PROCEDURE SetDefaultStyle(style: LONGINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_FontStyle IN ctx.attrSet) THEN ctx.style := {style} END
 	END SetDefaultStyle;
 
-	PROCEDURE SetDefaultColor(color: INTEGER; ctx: Context);
+	PROCEDURE SetDefaultColor(color: LONGINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_Color IN ctx.attrSet) THEN ctx.color := color END
 	END SetDefaultColor;
@@ -963,12 +963,12 @@ MODULE W3cHtmlImporter;
 		IF ~(Attr_FontFamily IN ctx.attrSet) THEN ctx.typeface := fontFamily$ END
 	END SetDefaultFontFamily;
 
-	PROCEDURE SetDefaultMarginLeft(marginLeft: INTEGER; ctx: Context);
+	PROCEDURE SetDefaultMarginLeft(marginLeft: LONGINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_MarginLeft IN ctx.attrSet) THEN INC(ctx.left, marginLeft) END;
 	END SetDefaultMarginLeft;
 
-	PROCEDURE SetDefaultMargin(margin: INTEGER; ctx: Context);
+	PROCEDURE SetDefaultMargin(margin: LONGINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_MarginTop IN ctx.attrSet) THEN ctx.marginTop := margin END;
 		IF ~(Attr_MarginBottom IN ctx.attrSet) THEN ctx.marginBottom := margin END
@@ -979,7 +979,7 @@ MODULE W3cHtmlImporter;
 		IF ~(Attr_FontSize IN ctx.attrSet) THEN ctx.size := Smaller(ctx) END
 	END SetDefaultSmaller;
 
-	PROCEDURE SetDefaultListStyleType(listStyleType: BYTE; ctx: Context);
+	PROCEDURE SetDefaultListStyleType(listStyleType: SHORTINT; ctx: Context);
 	BEGIN
 		IF ~(Attr_Type IN ctx.attrSet) THEN ctx.listStyleType := listStyleType END;
 	END SetDefaultListStyleType;
@@ -1112,7 +1112,7 @@ MODULE W3cHtmlImporter;
 	END WriteUL;
 	
 	PROCEDURE WriteOL (ctx: Context);
-		VAR savedListNum: INTEGER;
+		VAR savedListNum: LONGINT;
 	BEGIN
 		SetDefaultListStyleType(ListStyleType_Decimal, ctx);
 		savedListNum := listNum;
@@ -1269,10 +1269,10 @@ MODULE W3cHtmlImporter;
 	END MediumGlobal;
 
 	PROCEDURE ImportDHtml* (VAR med: WinOle.STGMEDIUM; OUT v: Views.View;
-											OUT w, h: INTEGER; OUT isSingle: BOOLEAN);
-		VAR res, adr: INTEGER; ch: BYTE;
+											OUT w, h: LONGINT; OUT isSingle: BOOLEAN);
+		VAR res, adr: LONGINT; ch: SHORTINT;
 			hnd: WinApi.HANDLE; pref: Properties.BoundsPref;
-			f: Files.File; wr: Files.Writer; s: Stores.Store; lineno: INTEGER;
+			f: Files.File; wr: Files.Writer; s: Stores.Store; lineno: LONGINT;
 	BEGIN
 		hnd := MediumGlobal(med);
 		ASSERT(hnd # 0, 20);
@@ -1299,7 +1299,7 @@ MODULE W3cHtmlImporter;
 
 	(* aux. procedure for creaing the HTML entity map
 	PROCEDURE ConvertHTMLEntityMapFromJSONFile*;
-		VAR t: TextModels.Model; s: TextMappers.Scanner; name: ARRAY 64 OF CHAR; val, res: INTEGER;
+		VAR t: TextModels.Model; s: TextMappers.Scanner; name: ARRAY 64 OF CHAR; val, res: LONGINT;
 	BEGIN
 		t := Views.OldView(Files.dir.This("W3c/Rsrc"), "HTMLEntityMap.odc").ThisModel()(TextModels.Model);
 		s.ConnectTo(t);

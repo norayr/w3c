@@ -35,7 +35,7 @@ TYPE
 	
 	Number* = POINTER TO RECORD (Value)
 		isInt*: BOOLEAN;
-		intVal*: LONGINT;
+		intVal*: HUGEINT;
 		realVal*: REAL
 	END;
 	
@@ -56,12 +56,12 @@ TYPE
 	Scanner = RECORD
 		r: Streams.Reader;
 		e: ErrorHandler;
-		line, col, pos, startPos: INTEGER;
+		line, col, pos, startPos: LONGINT;
 		nextCh: CHAR;
-		sym: BYTE;
+		sym: SHORTINT;
 		isInt: BOOLEAN;
 		dynstr: DStrings.DynamicString; (* key, string, literal *)
-		intVal: LONGINT;
+		intVal: HUGEINT;
 		realVal: REAL;
 		stringPool: DStrings.Pool;
 		stringPooling: SET
@@ -119,7 +119,7 @@ BEGIN
 END SetStringPooling;
 
 PROCEDURE ScanString(VAR s: Scanner);
-	VAR hex4: ARRAY 6 OF CHAR; i, val, res: INTEGER; ch: CHAR;
+	VAR hex4: ARRAY 6 OF CHAR; i, val, res: LONGINT; ch: CHAR;
 BEGIN
 	ASSERT(s.nextCh = '"');
 	NextCh(s);
@@ -173,7 +173,7 @@ BEGIN
 END ScanLiteral;
 
 PROCEDURE ScanNum(VAR s: Scanner);
-	VAR numStr: ARRAY 256 OF CHAR; numLen, res: INTEGER;
+	VAR numStr: ARRAY 256 OF CHAR; numLen, res: LONGINT;
 	
 	PROCEDURE Consume(VAR s: Scanner; ch: CHAR);
 	BEGIN
@@ -251,14 +251,14 @@ BEGIN
 	END
 END Scan;
 
-PROCEDURE GetStr(VAR s: Scanner; type: INTEGER): DStrings.String;
+PROCEDURE GetStr(VAR s: Scanner; type: LONGINT): DStrings.String;
 BEGIN
 	IF type IN s.stringPooling THEN RETURN s.stringPool.Get(s.dynstr)
 	ELSE RETURN s.dynstr.ToString()
 	END
 END GetStr;
 
-PROCEDURE ParseVal(VAR s: Scanner; nesting: INTEGER): Value;
+PROCEDURE ParseVal(VAR s: Scanner; nesting: LONGINT): Value;
 	VAR num: Number; str: String; obj: Object; key: DStrings.String; val: Value; arr: Array;
 BEGIN
 	IF nesting = MaxNesting THEN Error(s, "maximum nesting level exceeded"); s.sym := Eos; RETURN NIL END;
@@ -340,7 +340,7 @@ PROCEDURE Write*(val: Value; out: Streams.Writer; IN indent: ARRAY OF CHAR);
 	END WriteHex4;
 	
 	PROCEDURE WriteStr(IN s: ARRAY OF CHAR);
-		VAR i: INTEGER; ch: CHAR;
+		VAR i: LONGINT; ch: CHAR;
 	BEGIN
 		out.Char('"');
 		i := 0; ch := s[0];
@@ -363,15 +363,15 @@ PROCEDURE Write*(val: Value; out: Streams.Writer; IN indent: ARRAY OF CHAR);
 		out.Char('"')
 	END WriteStr;
 	
-	PROCEDURE WriteIndent(level: INTEGER);
-		VAR i: INTEGER;
+	PROCEDURE WriteIndent(level: LONGINT);
+		VAR i: LONGINT;
 	BEGIN
 		IF indent # "" THEN out.Char(CR);
 			FOR i := 1 TO level DO out.String(indent) END
 		END
 	END WriteIndent;
 	
-	PROCEDURE WriteVal(x: Value; indentLevel: INTEGER);
+	PROCEDURE WriteVal(x: Value; indentLevel: LONGINT);
 		VAR de: Objects.DictEnumerator; it: Objects.Enumerator; next: ANYPTR; val: Value; key: DStrings.String;
 			numStr: ARRAY 32 OF CHAR;
 	BEGIN
@@ -440,7 +440,7 @@ BEGIN
 END NewParser;
 
 PROCEDURE Parse*(IN json: ARRAY OF CHAR): Value;
-	VAR r: Streams.Reader; s: Scanner; val: Value; res: INTEGER;
+	VAR r: Streams.Reader; s: Scanner; val: Value; res: LONGINT;
 BEGIN
 	r := Streams.NewStringReader(DStrings.NewString(json), 0);
 	InitScanner(s, r, NIL); Scan(s);
@@ -455,7 +455,7 @@ END Parse;
 
 (* 
 PROCEDURE Test*;
-	VAR val: Value; res: INTEGER;
+	VAR val: Value; res: LONGINT;
 BEGIN
 	val := Parse('["3", "3", "3"]');
 	Dialog.GetOK(Stringify(val, "  "), "", "", "", {Dialog.ok}, res);

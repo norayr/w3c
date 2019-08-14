@@ -59,7 +59,7 @@ VAR
 
 TYPE
 	Content* = POINTER TO ABSTRACT RECORD
-		pos: INTEGER;
+		pos: LONGINT;
 		previous, next: Content;
 	END;
 	
@@ -69,7 +69,7 @@ TYPE
 
 	Container* = POINTER TO ABSTRACT RECORD (Content)
 		first, last: Content;
-		nofContents: INTEGER;
+		nofContents: LONGINT;
 	END;
 	
 	Document* = POINTER TO RECORD (Container)
@@ -98,17 +98,17 @@ TYPE
 
 	EntityDecl* = POINTER TO RECORD (NotationDecl)
 		value, notationName: String;
-		type: SHORTINT;
+		type: INTEGER;
 	END;
 
 	ElementDecl* = POINTER TO RECORD (NameContent)
-		contentType: SHORTINT;
+		contentType: INTEGER;
 		content: CollectionCP;	(* for contentType = Mixed or contentType = Element *)
 		attributeDecls: Objects.Dictionary;
 	END;
 
 	ContentParticle* = POINTER TO ABSTRACT RECORD (Content)
-		occurence: SHORTINT;
+		occurence: INTEGER;
 	END;
 	
 	NameContentParticle* = POINTER TO RECORD (ContentParticle)
@@ -132,12 +132,12 @@ TYPE
 
 	CollectionCP* = POINTER TO RECORD (ContentParticle)
 		children: Objects.Collection;
-		type: SHORTINT;
+		type: INTEGER;
 	END;
 
 	AttributeDecl* = POINTER TO RECORD (NameContent)
 		defaultValue: String;
-		type: SHORTINT;
+		type: INTEGER;
 		allowedValues: Objects.Dictionary;
 		required: BOOLEAN;
 	END;
@@ -160,7 +160,7 @@ TYPE
 
 	ArrayChars* = POINTER TO EXTENSIBLE RECORD (Chars)
 		str: String;
-		len: INTEGER;
+		len: LONGINT;
 	END;
 	
 	CDataSect* = POINTER TO RECORD (ArrayChars) END;
@@ -168,7 +168,7 @@ TYPE
 	Comment* = POINTER TO RECORD (ArrayChars) END;
 	
 	CharReference* = POINTER TO RECORD (Content)
-		code: INTEGER;
+		code: LONGINT;
 	END;
 
 	TraverseProc* = PROCEDURE (c: Content; data: ANYPTR);
@@ -177,7 +177,7 @@ TYPE
 	
 	ElementRegistry* = POINTER TO RECORD
 		generators: Objects.Dictionary;
-		timestamp: INTEGER;
+		timestamp: LONGINT;
 	END;
 	
 	ElementEntry* = POINTER TO RECORD
@@ -198,7 +198,7 @@ PROCEDURE^ (this: Element) GetAttribute*(IN name: ARRAY OF CHAR): Attribute, NEW
 PROCEDURE^ (this: Element) AddAttribute*(attribute: Attribute), NEW, EXTENSIBLE;
 PROCEDURE^ (this: NotationDecl) GetPublicId*(): String, NEW;
 PROCEDURE^ (this: NotationDecl) GetSystemId*(): String, NEW;
-PROCEDURE^ NewLine(w: Streams.Writer; level: INTEGER);
+PROCEDURE^ NewLine(w: Streams.Writer; level: LONGINT);
 PROCEDURE^ EscapeString(w: Streams.Writer; IN string: ARRAY OF CHAR);
 
 
@@ -209,18 +209,18 @@ BEGIN
 	this.pos := 0; this.previous := NIL; this.next := NIL;
 END Init;
 
-PROCEDURE (this: Content) GetPos*(): INTEGER, NEW, EXTENSIBLE;
+PROCEDURE (this: Content) GetPos*(): LONGINT, NEW, EXTENSIBLE;
 BEGIN
 	RETURN this.pos
 END GetPos;
 
-PROCEDURE (this: Content) SetPos*(pos: INTEGER), NEW, EXTENSIBLE;
+PROCEDURE (this: Content) SetPos*(pos: LONGINT), NEW, EXTENSIBLE;
 BEGIN
 	this.pos := pos
 END SetPos;
 
 (** write the content to stream w. level is the current hierarchy level. used for formatting *)
-PROCEDURE (this: Content) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER), NEW, ABSTRACT;
+PROCEDURE (this: Content) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT), NEW, ABSTRACT;
 	
 	
 (* ------ NameContent ------ *)
@@ -250,7 +250,7 @@ BEGIN
 	END;
 END SetNameAsString;
 
-PROCEDURE (this: NameContent) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER), EXTENSIBLE;
+PROCEDURE (this: NameContent) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT), EXTENSIBLE;
 BEGIN
 	w.String(this.name^)
 END Write;
@@ -356,7 +356,7 @@ BEGIN
 END RemoveContent;
 
 PROCEDURE (this: Container) GetContents*(): Objects.Enumerator, NEW;
-	VAR c: Content; array: Objects.PTRArray; enumerator: Objects.ArrayEnumerator; i: INTEGER;
+	VAR c: Content; array: Objects.PTRArray; enumerator: Objects.ArrayEnumerator; i: LONGINT;
 BEGIN
 	NEW(array, MAX(this.nofContents, 1));
 	c := this.first;
@@ -368,7 +368,7 @@ BEGIN
 	RETURN enumerator;
 END GetContents;
 
-PROCEDURE (this: Container) GetNumberOfContents*(): INTEGER, NEW;
+PROCEDURE (this: Container) GetNumberOfContents*(): LONGINT, NEW;
 BEGIN
 	RETURN this.nofContents;
 END GetNumberOfContents;
@@ -430,7 +430,7 @@ BEGIN
 	this.AddContent^(c)
 END AddContent;
 
-PROCEDURE (this: Document) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: Document) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 	VAR e: Objects.Enumerator; c: ANYPTR;
 BEGIN
 	e := this.GetContents();
@@ -469,7 +469,7 @@ BEGIN
 	this.encoding := DStrings.NewString(encoding)
 END SetEncoding;
 
-PROCEDURE (this: TextDecl) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER), EXTENSIBLE;
+PROCEDURE (this: TextDecl) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT), EXTENSIBLE;
 BEGIN
 	w.String('<?xml version="'); w.String(this.version^);
 	IF this.encoding # NIL THEN w.String('" encoding="'); w.String(this.encoding^) END;
@@ -495,7 +495,7 @@ BEGIN
 	this.standalone := standalone
 END SetStandalone;
 
-PROCEDURE (this: XMLDecl) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: XMLDecl) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 BEGIN
 	w.String('<?xml version="'); w.String(this.version^);
 	IF this.encoding # NIL THEN w.String('" encoding="'); w.String(this.encoding^) END;
@@ -551,7 +551,7 @@ BEGIN
 	END
 END GetNotationDecl;
 
-PROCEDURE (this: DocTypeDecl) GetEntityDecl*(IN name: ARRAY OF CHAR; type: SHORTINT): EntityDecl, NEW;
+PROCEDURE (this: DocTypeDecl) GetEntityDecl*(IN name: ARRAY OF CHAR; type: INTEGER): EntityDecl, NEW;
 	VAR p: ANYPTR;
 BEGIN
 	p := NIL;
@@ -573,7 +573,7 @@ BEGIN
 	this.externalSubset := externalSubset
 END SetExternalSubset;
 
-PROCEDURE (this: DocTypeDecl) Write*(w: Streams.Writer; context: ANYPTR;  level: INTEGER);
+PROCEDURE (this: DocTypeDecl) Write*(w: Streams.Writer; context: ANYPTR;  level: LONGINT);
 	VAR e: Objects.Enumerator; p: ANYPTR; s: String;
 BEGIN
 	w.String("<!DOCTYPE "); w.String(this.name^);
@@ -627,7 +627,7 @@ BEGIN
 	this.publicId := DStrings.NewString(publicId)
 END SetPublicId;
 
-PROCEDURE (this: NotationDecl) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER), EXTENSIBLE;
+PROCEDURE (this: NotationDecl) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT), EXTENSIBLE;
 BEGIN
 	w.String("<!NOTATION "); w.String(this.name^);
 	IF this.publicId # NIL THEN
@@ -649,12 +649,12 @@ BEGIN
 	this.type := GeneralEntity;
 END Init;
 
-PROCEDURE (this: EntityDecl) GetType*(): SHORTINT, NEW;
+PROCEDURE (this: EntityDecl) GetType*(): INTEGER, NEW;
 BEGIN
 	RETURN this.type
 END GetType;
 
-PROCEDURE (this: EntityDecl) SetType*(type: SHORTINT), NEW;
+PROCEDURE (this: EntityDecl) SetType*(type: INTEGER), NEW;
 BEGIN
 	this.type := type
 END SetType;
@@ -679,7 +679,7 @@ BEGIN
 	this.notationName := DStrings.NewString(notationName)
 END SetNotationName;
 
-PROCEDURE (this: EntityDecl) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: EntityDecl) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 BEGIN
 	w.String("<!ENTITY ");
 	IF this.type = ParameterEntity THEN w.String("% ") END;
@@ -711,12 +711,12 @@ BEGIN
 	this.attributeDecls := Objects.NewArrayDict()
 END Init;
 
-PROCEDURE (this: ElementDecl) GetContentType*(): SHORTINT, NEW;
+PROCEDURE (this: ElementDecl) GetContentType*(): INTEGER, NEW;
 BEGIN
 	RETURN this.contentType
 END GetContentType;
 
-PROCEDURE (this: ElementDecl) SetContentType*(contentType: SHORTINT), NEW;
+PROCEDURE (this: ElementDecl) SetContentType*(contentType: INTEGER), NEW;
 BEGIN
 	this.contentType := contentType
 END SetContentType;
@@ -748,7 +748,7 @@ BEGIN
 	this.attributeDecls.Add(attributeDecl.name^, attributeDecl)
 END AddAttributeDecl;
 
-PROCEDURE (this: ElementDecl) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: ElementDecl) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 	VAR e: Objects.Enumerator; p: ANYPTR;
 BEGIN
 	w.String("<!ELEMENT "); w.String(this.name^); w.Char(Space);
@@ -779,12 +779,12 @@ BEGIN
 	this.occurence := ZeroOrOnce;
 END Init;
 
-PROCEDURE (this: ContentParticle) GetOccurence*(): SHORTINT, NEW;
+PROCEDURE (this: ContentParticle) GetOccurence*(): INTEGER, NEW;
 BEGIN
 	RETURN this.occurence
 END GetOccurence;
 
-PROCEDURE (this: ContentParticle) SetOccurence*(occ: SHORTINT), NEW;
+PROCEDURE (this: ContentParticle) SetOccurence*(occ: INTEGER), NEW;
 BEGIN
 	this.occurence := occ
 END SetOccurence;
@@ -823,7 +823,7 @@ BEGIN
 	this.name := name;
 END SetNameAsString;
 
-PROCEDURE (this: NameContentParticle) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: NameContentParticle) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 	VAR ch: CHAR;
 BEGIN
 	w.String(this.name^);
@@ -840,12 +840,12 @@ BEGIN
 	this.type := 0;
 END Init;
 
-PROCEDURE (this: CollectionCP) GetType*(): SHORTINT, NEW;
+PROCEDURE (this: CollectionCP) GetType*(): INTEGER, NEW;
 BEGIN
 	RETURN this.type
 END GetType;
 
-PROCEDURE (this: CollectionCP) SetType*(type: SHORTINT), NEW;
+PROCEDURE (this: CollectionCP) SetType*(type: INTEGER), NEW;
 BEGIN
 	this.type := type
 END SetType;
@@ -860,7 +860,7 @@ BEGIN
 	this.children.Add(cp)
 END AddChild;
 
-PROCEDURE (this: CollectionCP) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: CollectionCP) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 	VAR e: Objects.Enumerator; ch: CHAR; p: ANYPTR;
 BEGIN
 	e := this.GetChildren();
@@ -900,12 +900,12 @@ BEGIN
 	this.defaultValue := DStrings.NewString(defaultValue)
 END SetDefaultValue;
 
-PROCEDURE (this: AttributeDecl) GetType*(): SHORTINT, NEW;
+PROCEDURE (this: AttributeDecl) GetType*(): INTEGER, NEW;
 BEGIN
 	RETURN this.type
 END GetType;
 
-PROCEDURE (this: AttributeDecl) SetType*(type: SHORTINT), NEW;
+PROCEDURE (this: AttributeDecl) SetType*(type: INTEGER), NEW;
 BEGIN
 	this.type := type
 END SetType;
@@ -933,7 +933,7 @@ BEGIN
 	this.required := required
 END SetRequired;
 
-PROCEDURE (this: AttributeDecl) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: AttributeDecl) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 	VAR e: Objects.Enumerator; p: ANYPTR;
 BEGIN
 	w.String(this.name^); w.Char(Space);
@@ -979,17 +979,17 @@ BEGIN
 	this.code := 0;
 END Init;
 
-PROCEDURE (this: CharReference) SetCode*(code: INTEGER), NEW;
+PROCEDURE (this: CharReference) SetCode*(code: LONGINT), NEW;
 BEGIN
 	this.code := code
 END SetCode;
 
-PROCEDURE (this: CharReference) GetCode*(): INTEGER, NEW;
+PROCEDURE (this: CharReference) GetCode*(): LONGINT, NEW;
 BEGIN
 	RETURN this.code
 END GetCode;
 
-PROCEDURE (this: CharReference) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: CharReference) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 	VAR codeArray: ARRAY 16 OF CHAR; codeStr: String;
 BEGIN
 	Strings.IntToString(this.code, codeArray);
@@ -1020,7 +1020,7 @@ BEGIN
 	END
 END SetDocument;
 
-PROCEDURE (this: EntityRef) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: EntityRef) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 BEGIN
 	w.Char('&'); w.String(this.name^); w.Char(';')
 END Write;
@@ -1094,9 +1094,9 @@ END GetIdElement;
 
 PROCEDURE (this: Chars) GetStr*(): String, NEW, ABSTRACT;
 
-PROCEDURE (this: Chars) GetLength*(): INTEGER, NEW, ABSTRACT;
+PROCEDURE (this: Chars) GetLength*(): LONGINT, NEW, ABSTRACT;
 
-PROCEDURE (this: Chars) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER), EXTENSIBLE;
+PROCEDURE (this: Chars) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT), EXTENSIBLE;
 	VAR s: String;
 BEGIN
 	s := this.GetStr(); w.String(s^)
@@ -1116,7 +1116,7 @@ BEGIN
 	RETURN this.str
 END GetStr;
 
-PROCEDURE (this: ArrayChars) GetLength*(): INTEGER;
+PROCEDURE (this: ArrayChars) GetLength*(): LONGINT;
 BEGIN
 	RETURN this.len
 END GetLength;
@@ -1136,8 +1136,8 @@ END SetStrAsString;
 
 (* ------ CDataSect ------ *)
 
-PROCEDURE (this: CDataSect) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
-	VAR s: String; i, j: INTEGER; buf: ARRAY 4 OF CHAR;
+PROCEDURE (this: CDataSect) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
+	VAR s: String; i, j: LONGINT; buf: ARRAY 4 OF CHAR;
 BEGIN
 	w.String("<![CDATA[");
 	s := this.GetStr(); buf := "   ";
@@ -1200,7 +1200,7 @@ BEGIN
 	this.instruction := DStrings.NewString(instruction)
 END SetInstruction;
 
-PROCEDURE (this: ProcessingInstruction) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: ProcessingInstruction) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 BEGIN
 	w.String("<?"); w.String(this.target^); w.Char(Space);
 	w.String(this.instruction^); w.String("?>"); NewLine(w, level)
@@ -1277,7 +1277,7 @@ BEGIN
 	END;
 END SetValueAsString;
 
-PROCEDURE (this: Attribute) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: Attribute) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 BEGIN
 	IF this.value = NIL THEN StdLog.String("NIL attribute "); StdLog.Ln; RETURN END;
 	w.Char(Space); w.String(this.name^); w.String('="'); EscapeString(w, this.value^); w.Char('"')
@@ -1471,7 +1471,7 @@ BEGIN
 END GetAttributeValue;
 
 PROCEDURE (this: Element) GetAttributes*(): Objects.Enumerator, NEW, EXTENSIBLE;
-	VAR a: Attribute; array: Objects.PTRArray; enumerator: Objects.ArrayEnumerator; i, nofAttributes: INTEGER;
+	VAR a: Attribute; array: Objects.PTRArray; enumerator: Objects.ArrayEnumerator; i, nofAttributes: LONGINT;
 BEGIN
 	nofAttributes := 0;
 	a := this.attributes;
@@ -1567,7 +1567,7 @@ BEGIN
 	END;
 END Traverse;
 
-PROCEDURE (this: Element) WriteAttributes*(w: Streams.Writer; context: ANYPTR; level: INTEGER), 
+PROCEDURE (this: Element) WriteAttributes*(w: Streams.Writer; context: ANYPTR; level: LONGINT), 
 																																	NEW, EXTENSIBLE;
 	VAR a: Attribute;
 BEGIN
@@ -1582,7 +1582,7 @@ BEGIN
 	END;
 END WriteAttributes;
 
-PROCEDURE (this: Element) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER), EXTENSIBLE;
+PROCEDURE (this: Element) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT), EXTENSIBLE;
 	VAR c: Content;
 BEGIN
 	w.Char('<'); w.String(this.name^);
@@ -1690,13 +1690,13 @@ BEGIN
 	RETURN e (* stub *)
 END InstantiateLate;
 
-PROCEDURE  (this: ElementRegistry) GetTimestamp*(): INTEGER, NEW;
+PROCEDURE  (this: ElementRegistry) GetTimestamp*(): LONGINT, NEW;
 BEGIN
 	RETURN this.timestamp;
 END GetTimestamp;
 
 PROCEDURE  (this: ElementRegistry) GetElements*(): ElementArray, NEW;
-	VAR enumerator: Objects.Enumerator; nofElements, i: INTEGER; ptr: ANYPTR; ea: ElementArray;
+	VAR enumerator: Objects.Enumerator; nofElements, i: LONGINT; ptr: ANYPTR; ea: ElementArray;
 BEGIN
 	enumerator := this.generators.GetEnumerator();
 	nofElements := 0;
@@ -1724,8 +1724,8 @@ END GetElements;
 
 (**	Write an 0X-terminated UTF8 string to a stream (excl. 0X). XML special characters are escaped.
 	Also works for ASCII strings. *)
-PROCEDURE UTF8ToStream*(IN string: ARRAY OF CHAR; w: Streams.Writer; VAR res: INTEGER);
-	VAR codeLength, stringLength, i: INTEGER; ch: CHAR;
+PROCEDURE UTF8ToStream*(IN string: ARRAY OF CHAR; w: Streams.Writer; VAR res: LONGINT);
+	VAR codeLength, stringLength, i: LONGINT; ch: CHAR;
 BEGIN
 	ASSERT(w # NIL, 20);
 	res := Ok;
@@ -1760,12 +1760,12 @@ END UTF8ToStream;
 	If the string array is to small, the string
 	will be truncated and an error will be reported. <string> is always a valid 0X-terminated string.
 	Also works for ASCII strings. *)
-PROCEDURE UTF8FromStream*(VAR string: ARRAY OF CHAR; r: Streams.Reader; VAR res: INTEGER);
+PROCEDURE UTF8FromStream*(VAR string: ARRAY OF CHAR; r: Streams.Reader; VAR res: LONGINT);
 	VAR ch: CHAR;  escapeBuffer: ARRAY 8 OF CHAR; escaping: BOOLEAN;
-		escapeIdx, codeLength, stringLength, i, len, actLen: INTEGER;
+		escapeIdx, codeLength, stringLength, i, len, actLen: LONGINT;
 
 	PROCEDURE FlushEscapeBuffer;
-		VAR j: INTEGER;
+		VAR j: LONGINT;
 	BEGIN
 		IF escaping THEN
 			j := 0;
@@ -1845,19 +1845,19 @@ BEGIN
 END UTF8FromStream;
 *)
 
-PROCEDURE (this: Comment) Write*(w: Streams.Writer; context: ANYPTR; level: INTEGER);
+PROCEDURE (this: Comment) Write*(w: Streams.Writer; context: ANYPTR; level: LONGINT);
 BEGIN
 	NewLine(w, level-1); w.String("<!--"); this.Write^(w, context, level); w.String("-->"); NewLine(w, level)
 END Write;
 
 
-PROCEDURE NewLine(w: Streams.Writer; level: INTEGER);
+PROCEDURE NewLine(w: Streams.Writer; level: LONGINT);
 BEGIN
 	w.Ln; WHILE level > 0 DO w.Char(Tab); DEC(level) END
 END NewLine;
 
 PROCEDURE EscapeString(w: Streams.Writer; IN string: ARRAY OF CHAR);
-	VAR i: INTEGER; ch: CHAR;
+	VAR i: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; ch := string[0];
 	WHILE w.ok & (ch # 0X) DO

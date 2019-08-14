@@ -60,8 +60,8 @@ TYPE
 	Scanner* = POINTER TO EXTENSIBLE RECORD
 		r-: Streams.Reader;
 		errorHandler-: ErrorHandler;
-		sym-: BYTE;	(** current token *)
-		line-, col-, oldpos, pos: INTEGER;
+		sym-: SHORTINT;	(** current token *)
+		line-, col-, oldpos, pos: LONGINT;
 		nextCh: CHAR;	(* look-ahead *)
 		dynstr: DStrings.DynamicString;	(* buffer for CharData, Literal, Name, etc. *)
 		stringPool: DStrings.Pool;
@@ -78,31 +78,31 @@ BEGIN
 	RETURN (ch = 020X) OR (ch = 9X) OR (ch = 0DX) OR (ch = 0AX)
 END IsWhiteSpace;
 
-PROCEDURE (this: Scanner) GetStr*(type: INTEGER): String, NEW;
+PROCEDURE (this: Scanner) GetStr*(type: LONGINT): String, NEW;
 BEGIN
 	IF type IN this.stringPooling THEN RETURN this.stringPool.Get(this.dynstr)
 	ELSE RETURN this.dynstr.ToString()
 	END
 END GetStr;
 
-PROCEDURE (this: Scanner) GetStrUpper*(type: INTEGER): String, NEW;
+PROCEDURE (this: Scanner) GetStrUpper*(type: LONGINT): String, NEW;
 BEGIN
 	this.dynstr.ToUpper();
 	RETURN this.GetStr(type)
 END GetStrUpper;
 
-PROCEDURE (this: Scanner) GetStrLower*(type: INTEGER): String, NEW;
+PROCEDURE (this: Scanner) GetStrLower*(type: LONGINT): String, NEW;
 BEGIN
 	this.dynstr.ToLower();
 	RETURN this.GetStr(type)
 END GetStrLower;
 
-PROCEDURE (this: Scanner) GetPos*(): INTEGER, NEW;
+PROCEDURE (this: Scanner) GetPos*(): LONGINT, NEW;
 BEGIN
 	RETURN this.pos - 1
 END GetPos;
 
-PROCEDURE (this: Scanner) GetOldPos*(): INTEGER, NEW;
+PROCEDURE (this: Scanner) GetOldPos*(): LONGINT, NEW;
 BEGIN
 	RETURN this.oldpos
 END GetOldPos;
@@ -151,11 +151,11 @@ END Init;
 (* Named entities are used rarely because not all browsers support all of them.
 	Therefore we assume that a simple  sequential file scan is sufficien. *)
 PROCEDURE (this: Scanner) MapEntityName(ref: String): CHAR, NEW;
-	VAR f: Files.File; pos, len, code, res: INTEGER;
+	VAR f: Files.File; pos, len, code, res: LONGINT;
 		line, key, val: ARRAY 64 OF CHAR;
 		
 		PROCEDURE ReadLine(rd: Files.Reader; OUT line: ARRAY OF CHAR);
-			VAR b: BYTE; i: INTEGER;
+			VAR b: SHORTINT; i: LONGINT;
 		BEGIN
 			REPEAT rd.ReadByte(b) UNTIL (b >= ORD(" ")) OR rd.eof;
 			line[0] := CHR(b); i := 1;
@@ -192,7 +192,7 @@ BEGIN
 END AppendTillChar;
 
 PROCEDURE (this: Scanner) DecodeAppendNext(), NEW;
-	VAR len0, reflen, val, res: INTEGER; ref: String; ch: CHAR;
+	VAR len0, reflen, val, res: LONGINT; ref: String; ch: CHAR;
 BEGIN
 	this.dynstr.AppendChar(this.nextCh);
 	IF this.nextCh = "&" THEN (* html encoded *)
@@ -313,7 +313,7 @@ END ScanComment;
 		Invalid
 		CharData	*)
 PROCEDURE (this: Scanner) ScanTo (IN tag: ARRAY OF CHAR), NEW;
-	VAR i, len: INTEGER;
+	VAR i, len: LONGINT;
 BEGIN
 	this.dynstr.Clear;
 	LOOP

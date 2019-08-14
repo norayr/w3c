@@ -58,11 +58,11 @@ TYPE
 	Scanner* = POINTER TO EXTENSIBLE RECORD
 		r-: Streams.Reader;
 		errorHandler-: ErrorHandler;
-		sym-: INTEGER;
-		numberType-: SHORTINT;
-		intVal-: INTEGER;
+		sym-: LONGINT;
+		numberType-: INTEGER;
+		intVal-: LONGINT;
 		realVal-: REAL;
-		line-, col-, pos: INTEGER;
+		line-, col-, pos: LONGINT;
 		nextCh: CHAR;
 		dynstr: DStrings.DynamicString;
 		stringPool: DStrings.Pool;
@@ -73,9 +73,9 @@ TYPE
 
 
 PROCEDURE^ (this: Scanner) NextCh, NEW;
-PROCEDURE^ (this: Scanner) GetPos*(): INTEGER, NEW;
+PROCEDURE^ (this: Scanner) GetPos*(): LONGINT, NEW;
 PROCEDURE^ IsWhiteSpace(ch: CHAR): BOOLEAN;
-PROCEDURE^ HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: INTEGER);
+PROCEDURE^ HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: LONGINT);
 PROCEDURE^ IsDigit(ch: CHAR): BOOLEAN;
 PROCEDURE^ IsNmChar(ch: CHAR): BOOLEAN;
 PROCEDURE^ IsEscape(ch: CHAR): BOOLEAN;
@@ -155,7 +155,7 @@ BEGIN
 END ScanComment;
 
 PROCEDURE (this: Scanner) ScanEscape(isString: BOOLEAN), NEW;
-	VAR val: INTEGER; n: SHORTINT; hexstr: ARRAY 7 OF CHAR; newline: BOOLEAN;
+	VAR val: LONGINT; n: INTEGER; hexstr: ARRAY 7 OF CHAR; newline: BOOLEAN;
 BEGIN
 	newline := FALSE;
 	this.NextCh();
@@ -217,7 +217,7 @@ BEGIN
 END ScanName;
 
 PROCEDURE (this: Scanner) HtmlDecode, NEW;
-	VAR i: INTEGER; ref: ARRAY 20 OF CHAR;
+	VAR i: LONGINT; ref: ARRAY 20 OF CHAR;
 BEGIN
 	IF this.nextCh = "&" THEN
 		this.NextCh();
@@ -306,7 +306,7 @@ BEGIN
 END ScanIdentUriFunction;
 
 PROCEDURE (this: Scanner) ScanNumber, NEW;
-	VAR a, b, div: INTEGER;
+	VAR a, b, div: LONGINT;
 BEGIN
 	a := 0;
 	WHILE IsDigit(this.nextCh) & (this.sym # Eof) DO
@@ -436,26 +436,26 @@ BEGIN
 	UNTIL this.sym # Null
 END Scan;
 
-PROCEDURE (this: Scanner) GetStr*(type: INTEGER): DStrings.String, NEW;
+PROCEDURE (this: Scanner) GetStr*(type: LONGINT): DStrings.String, NEW;
 BEGIN
 	IF type IN this.stringPooling THEN RETURN this.stringPool.Get(this.dynstr)
 	ELSE RETURN this.dynstr.ToString()
 	END
 END GetStr;
 
-PROCEDURE (this: Scanner) GetStrLower*(type: INTEGER): DStrings.String, NEW;
+PROCEDURE (this: Scanner) GetStrLower*(type: LONGINT): DStrings.String, NEW;
 BEGIN
 	this.dynstr.ToLower;
 	RETURN this.GetStr(type)
 END GetStrLower;
 
-PROCEDURE (this: Scanner) GetStrUpper*(type: INTEGER): DStrings.String, NEW;
+PROCEDURE (this: Scanner) GetStrUpper*(type: LONGINT): DStrings.String, NEW;
 BEGIN
 	this.dynstr.ToUpper;
 	RETURN this.GetStr(type)
 END GetStrUpper;
 
-PROCEDURE (this: Scanner) GetPos*(): INTEGER, NEW;
+PROCEDURE (this: Scanner) GetPos*(): LONGINT, NEW;
 BEGIN
 	RETURN this.pos
 END GetPos;
@@ -492,8 +492,8 @@ BEGIN
 	RETURN ('0' <= ch) & (ch <= '9')
 END IsDigit;
 
-PROCEDURE HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: INTEGER);
-	VAR i, d: INTEGER; ch: CHAR;
+PROCEDURE HexStrToInt(VAR str: ARRAY OF CHAR; VAR val: LONGINT);
+	VAR i, d: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; ch := str[0];
 	WHILE (ch # 0X) & (ch <= " ") DO
@@ -505,7 +505,7 @@ BEGIN
 		ELSE d := ORD(ch) - ORD("A") + 10
 		END;
 		INC(i); ch := str[i];
-		IF val <= ((MAX(INTEGER) - d) DIV 10H) THEN
+		IF val <= ((MAX(LONGINT) - d) DIV 10H) THEN
 			val := 10H * val + d
 		ELSE
 			HALT(99)

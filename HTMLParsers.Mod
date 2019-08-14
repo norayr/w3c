@@ -475,7 +475,7 @@ END ParseEndTag;
 
 
 PROCEDURE IsPubidLiteral(VAR str: ARRAY OF CHAR): BOOLEAN;
-	VAR i, len: LONGINT; ch: CHAR;
+	VAR i, len: HUGEINT; ch: CHAR;
 BEGIN
 	i := 0; len := LEN(str); ch := str[0];
 	REPEAT

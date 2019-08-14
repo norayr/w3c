@@ -12,11 +12,11 @@ CONST
 TYPE
 	ErrorHandler* = POINTER TO EXTENSIBLE RECORD
 		configMinErrorDist*, (* configured minimum distance between handled errors *)
-		configMaxErrNum*: INTEGER; (* configured maximum number of errors reported *)
+		configMaxErrNum*: LONGINT; (* configured maximum number of errors reported *)
 		errorLog*: DStrings.DynamicString; (* buffer for default error reporting; one line per error *)
 		cont*: BOOLEAN; (* continue after error handling *)
 		nofErrors*, (* total number of errors reported *)
-		lastErrorPos*: INTEGER; (* last error position, initially -configMinErrorDist *)
+		lastErrorPos*: LONGINT; (* last error position, initially -configMinErrorDist *)
 	END;
 
 PROCEDURE (this: ErrorHandler) Reset* (), NEW, EXTENSIBLE;
@@ -35,7 +35,7 @@ BEGIN
 END Init;
 
 (* appends error message to errorLog and continues; can be overridden *)
-PROCEDURE (this: ErrorHandler) ReportError* (pos, line, col: INTEGER; IN msg: ARRAY OF CHAR),
+PROCEDURE (this: ErrorHandler) ReportError* (pos, line, col: LONGINT; IN msg: ARRAY OF CHAR),
 																	NEW, EXTENSIBLE;
 	VAR posStr, lineStr, colStr: ARRAY 24 OF CHAR; errPos, errMsg: Dialog.String;
 BEGIN
@@ -48,7 +48,7 @@ BEGIN
 END ReportError;
 
 (* handles an error message, usually not overridden *)
-PROCEDURE (this: ErrorHandler) HandleError* (pos, line, col: INTEGER; IN msg: ARRAY OF CHAR),
+PROCEDURE (this: ErrorHandler) HandleError* (pos, line, col: LONGINT; IN msg: ARRAY OF CHAR),
 																	NEW, EXTENSIBLE;
 BEGIN
 	IF this.cont & (pos - this.lastErrorPos >= this.configMinErrorDist) & (this.nofErrors < this.configMaxErrNum) THEN

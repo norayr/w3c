@@ -55,8 +55,8 @@ CONST
 TYPE
 	Scanner* = POINTER TO EXTENSIBLE RECORD
 		errorHandler-: ErrorHandler;
-		sym-: SHORTINT;	(** current token *)
-		line-, col-, oldpos, pos: INTEGER;
+		sym-: INTEGER;	(** current token *)
+		line-, col-, oldpos, pos: LONGINT;
 		r-: Streams.Reader;
 		nextCh: CHAR;	(* look-ahead *)
 		dynstr: DStrings.DynamicString;	(* buffer for CharData, Literal, Name, CharRef, EntityRef, ParamEntityRef *)
@@ -80,7 +80,7 @@ BEGIN
 	this.NextCh();
 END Init;
 
-PROCEDURE (this: Scanner) GetString*(type : INTEGER): DStrings.String, NEW;
+PROCEDURE (this: Scanner) GetString*(type : LONGINT): DStrings.String, NEW;
 	VAR string : DStrings.String;
 BEGIN
 	IF (type IN this.stringPooling) THEN
@@ -91,12 +91,12 @@ BEGIN
 	RETURN string;
 END GetString;
 
-PROCEDURE (this: Scanner) GetPos*(): INTEGER, NEW;
+PROCEDURE (this: Scanner) GetPos*(): LONGINT, NEW;
 BEGIN
 	RETURN this.pos - 1
 END GetPos;
 
-PROCEDURE (this: Scanner) GetOldPos*(): INTEGER, NEW;
+PROCEDURE (this: Scanner) GetOldPos*(): LONGINT, NEW;
 BEGIN
 	RETURN this.oldpos
 END GetOldPos;
@@ -234,7 +234,7 @@ END ScanComment;
 		TagCDataSectClose
 		Invalid	*)
 PROCEDURE (this: Scanner) ScanCDataSect, NEW;
-	VAR bc: INTEGER; escape : BOOLEAN;
+	VAR bc: LONGINT; escape : BOOLEAN;
 BEGIN
 	IF this.sym = Eof THEN
 		this.sym := Invalid;
@@ -437,7 +437,7 @@ END ScanMarkup;
 	EntityRef
 	Eof *)
 PROCEDURE (this: Scanner) ScanContent*, NEW;
-	VAR op : INTEGER;
+	VAR op : LONGINT;
 BEGIN
 	op := this.GetPos();
 	this.SkipWhiteSpaces(); this.oldpos := this.GetPos();
