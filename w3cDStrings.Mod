@@ -1,4 +1,4 @@
-MODULE W3cDStrings;
+MODULE w3cDStrings;
 
 (* This module provides dynamically growing strings, string pools, andstring splitting.
 
@@ -390,4 +390,4 @@ END Split;
 
 
 
-END W3cDStrings.
+END w3cDStrings.
