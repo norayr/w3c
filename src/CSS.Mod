@@ -247,12 +247,12 @@ END GetMedia;
 
 PROCEDURE (this: RuleSet) IsMediumSupported*(medium: INTEGER): BOOLEAN, NEW;
 BEGIN
-	RETURN medium IN this.media
+	RETURN medium VAR this.media
 END IsMediumSupported;
 
 PROCEDURE (this: RuleSet) AddMedium*(medium: INTEGER), NEW;
 BEGIN
-	IF medium IN {All, Aural, Braille, Embossed, Handheld, Print, Projection, Screen, TTY, TV} THEN
+	IF medium VAR {All, Aural, Braille, Embossed, Handheld, Print, Projection, Screen, TTY, TV} THEN
 		IF medium # All THEN EXCL(this.media, All) END;
 		this.media := this.media + {medium}
 	END
@@ -357,7 +357,7 @@ END GetCombinator;
 
 PROCEDURE (this: SimpleSelector) SetCombinator*(combinator: INTEGER), NEW;
 BEGIN
-	IF combinator IN {Descendant, Child, Sibling} THEN
+	IF combinator VAR {Descendant, Child, Sibling} THEN
 		this.combinator := combinator
 	END
 END SetCombinator;
@@ -433,7 +433,7 @@ END GetRelation;
 
 PROCEDURE (this: Attribute) SetRelation*(relation: INTEGER), NEW;
 BEGIN
-	IF relation IN {Equal, Includes, Dashmatch} THEN
+	IF relation VAR {Equal, Includes, Dashmatch} THEN
 		this.relation := relation
 	END
 END SetRelation;
@@ -538,7 +538,7 @@ END GetOperator;
 
 PROCEDURE (this: Term) SetOperator*(operator: INTEGER), NEW;
 BEGIN
-	IF operator IN {Add, Sub, Times, Slash, Seq} THEN
+	IF operator VAR {Add, Sub, Times, Slash, Seq} THEN
 		this.operator := operator
 	END
 END SetOperator;
@@ -606,7 +606,7 @@ BEGIN
 	this.stringVal := stringVal
 END SetStringVal;
 
-PROCEDURE (this: Term) IsStringIdent*(IN ident: ARRAY OF CHAR): BOOLEAN, NEW;
+PROCEDURE (this: Term) IsStringIdent*(VAR ident: ARRAY OF CHAR): BOOLEAN, NEW;
 BEGIN
 	RETURN (this.type = StringIdent) & (this.stringVal # NIL) & (this.stringVal^ = ident)
 END IsStringIdent;
@@ -623,30 +623,30 @@ END GetUnit;
 
 PROCEDURE (this: Term) SetUnit*(unit: INTEGER), NEW;
 BEGIN
-	IF unit IN {em, ex, ch, rem, vw, vh, vmin, vmax, px, in, cm, mm, pt, pc, deg, grad, rad, ms, s, Hz, kHz} THEN
+	IF unit VAR {em, ex, ch, rem, vw, vh, vmin, vmax, px, in, cm, mm, pt, pc, deg, grad, rad, ms, s, Hz, kHz} THEN
 		this.unit := unit
 	END
 END SetUnit;
 
 PROCEDURE (this: Term) IsLength*(): BOOLEAN, NEW;
 BEGIN
-	RETURN (this.type IN {IntDimension, RealDimension})
-				& (this.unit IN {em, ex, ch, rem, vw, vh, vmin, vmax, px, in, cm, mm, pt, pc})
+	RETURN (this.type VAR {IntDimension, RealDimension})
+				& (this.unit VAR {em, ex, ch, rem, vw, vh, vmin, vmax, px, in, cm, mm, pt, pc})
 END IsLength;
 
 PROCEDURE (this: Term) IsAngle*(): BOOLEAN, NEW;
 BEGIN
-	RETURN (this.type IN {IntDimension, RealDimension}) & (this.unit IN {deg, grad, rad})
+	RETURN (this.type VAR {IntDimension, RealDimension}) & (this.unit VAR {deg, grad, rad})
 END IsAngle;
 
 PROCEDURE (this: Term) IsTime*(): BOOLEAN, NEW;
 BEGIN
-	RETURN (this.type IN {IntDimension, RealDimension}) & (this.unit IN {ms, s})
+	RETURN (this.type VAR {IntDimension, RealDimension}) & (this.unit VAR {ms, s})
 END IsTime;
 
 PROCEDURE (this: Term) IsFrequency*(): BOOLEAN, NEW;
 BEGIN
-	RETURN (this.type IN {IntDimension, RealDimension}) & (this.unit IN {Hz, kHz})
+	RETURN (this.type VAR {IntDimension, RealDimension}) & (this.unit VAR {Hz, kHz})
 END IsFrequency;
 
 PROCEDURE (this: Term) GetColor*(VAR r, g, b, a: INTEGER), NEW;
@@ -674,7 +674,7 @@ END AddTerm;
 	return a single string or a concatenated sequence of strings with 'sep' in between.
 	'buf' provides a reusabe string buffer allocated on demand if NIL is passed.
 *)
-PROCEDURE (this: Term) GetStringSeq*(IN sep: ARRAY OF CHAR; VAR buf: DStrings.DynamicString): String, NEW;
+PROCEDURE (this: Term) GetStringSeq*(VAR sep: ARRAY OF CHAR; VAR buf: DStrings.DynamicString): String, NEW;
 	VAR seq: Objects.Enumerator;  val: String;
 BEGIN
 	val := this.GetStringVal();
@@ -719,7 +719,7 @@ END GetPseudoPage;
 
 PROCEDURE (this: Page) SetPseudoPage*(pseudoPage: INTEGER), NEW;
 BEGIN
-	IF pseudoPage IN {Left, Right, First} THEN
+	IF pseudoPage VAR {Left, Right, First} THEN
 		this.pseudoPage := pseudoPage
 	END
 END SetPseudoPage;

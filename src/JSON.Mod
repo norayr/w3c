@@ -77,7 +77,7 @@ VAR
 	false-, null-, true-: Literal; (* literal singletons, immutable *)
 
 
-PROCEDURE Error(VAR s: Scanner; IN msg: ARRAY OF CHAR);
+PROCEDURE Error(VAR s: Scanner; VAR msg: ARRAY OF CHAR);
 BEGIN
 	s.e.HandleError(s.startPos, s.line, s.col, msg);
 	IF ~s.e.cont THEN s.nextCh := 0X; s.r.ok := FALSE END
@@ -215,7 +215,7 @@ PROCEDURE Scan(VAR s: Scanner);
 BEGIN
 	s.dynstr.Clear();
 	WHILE (s.nextCh # 0X) & (s.nextCh <= " ") DO 
-		IF ~((ORD(s.nextCh)-1) IN {ORD(TAB)-1, ORD(CR)-1, ORD(LF)-1, ORD(" ")-1}) THEN
+		IF ~((ORD(s.nextCh)-1) VAR {ORD(TAB)-1, ORD(CR)-1, ORD(LF)-1, ORD(" ")-1}) THEN
 			Error(s, "invalid white space")
 		END;
 		NextCh(s)
@@ -253,7 +253,7 @@ END Scan;
 
 PROCEDURE GetStr(VAR s: Scanner; type: LONGINT): DStrings.String;
 BEGIN
-	IF type IN s.stringPooling THEN RETURN s.stringPool.Get(s.dynstr)
+	IF type VAR s.stringPooling THEN RETURN s.stringPool.Get(s.dynstr)
 	ELSE RETURN s.dynstr.ToString()
 	END
 END GetStr;
@@ -292,7 +292,7 @@ BEGIN
 	| BeginArr:
 			NEW(arr); arr.elems := Objects.NewArrayCollection();
 			Scan(s);
-			WHILE ~(s.sym IN {EndArr, EndObj, Eos, Invalid}) DO
+			WHILE ~(s.sym VAR {EndArr, EndObj, Eos, Invalid}) DO
 				val := ParseVal(s, nesting + 1);
 				IF val # NIL THEN arr.elems.Add(val) END;
 				IF s.sym # EndArr THEN
@@ -330,7 +330,7 @@ END Parse;
 
 (** write JSON value to stream; outputs a single line if indent = "" *)
 
-PROCEDURE Write*(val: Value; out: Streams.Writer; IN indent: ARRAY OF CHAR);
+PROCEDURE Write*(val: Value; out: Streams.Writer; VAR indent: ARRAY OF CHAR);
 	
 	PROCEDURE WriteHex4(ch: CHAR);
 		VAR hex4: ARRAY 5 OF CHAR;
@@ -339,7 +339,7 @@ PROCEDURE Write*(val: Value; out: Streams.Writer; IN indent: ARRAY OF CHAR);
 		out.String("\u"); out.String(hex4)
 	END WriteHex4;
 	
-	PROCEDURE WriteStr(IN s: ARRAY OF CHAR);
+	PROCEDURE WriteStr(VAR s: ARRAY OF CHAR);
 		VAR i: LONGINT; ch: CHAR;
 	BEGIN
 		out.Char('"');
@@ -385,7 +385,7 @@ PROCEDURE Write*(val: Value; out: Streams.Writer; IN indent: ARRAY OF CHAR);
 				IF x.isInt THEN
 					Strings.IntToString(x.intVal, numStr); out.String(numStr)
 				ELSE
-					IF (x.realVal = INF) OR (x.realVal = -INF) THEN out.String("null")
+					IF (x.realVal = VARF) OR (x.realVal = -VARF) THEN out.String("null")
 					ELSE Strings.RealToStringForm(x.realVal, 16, 1, 0, " ", numStr); out.String(numStr)
 					END
 				END
@@ -424,7 +424,7 @@ BEGIN
 END Write;
 
 (** JavaScript style interface to Write; outputs a single line if indent = "" *)
-PROCEDURE Stringify* (val: Value; IN indent: ARRAY OF CHAR): DStrings.String;
+PROCEDURE Stringify* (val: Value; VAR indent: ARRAY OF CHAR): DStrings.String;
 	VAR out: Streams.StringWriter;
 BEGIN
 	out := Streams.NewStringWriter(NIL, 28);
@@ -439,7 +439,7 @@ BEGIN
 	RETURN p
 END NewParser;
 
-PROCEDURE Parse*(IN json: ARRAY OF CHAR): Value;
+PROCEDURE Parse*(VAR json: ARRAY OF CHAR): Value;
 	VAR r: Streams.Reader; s: Scanner; val: Value; res: LONGINT;
 BEGIN
 	r := Streams.NewStringReader(DStrings.NewString(json), 0);

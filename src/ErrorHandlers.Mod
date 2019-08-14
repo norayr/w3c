@@ -35,7 +35,7 @@ BEGIN
 END Init;
 
 (* appends error message to errorLog and continues; can be overridden *)
-PROCEDURE (this: ErrorHandler) ReportError* (pos, line, col: LONGINT; IN msg: ARRAY OF CHAR),
+PROCEDURE (this: ErrorHandler) ReportError* (pos, line, col: LONGINT; VAR msg: ARRAY OF CHAR),
 																	NEW, EXTENSIBLE;
 	VAR posStr, lineStr, colStr: ARRAY 24 OF CHAR; errPos, errMsg: Dialog.String;
 BEGIN
@@ -48,7 +48,7 @@ BEGIN
 END ReportError;
 
 (* handles an error message, usually not overridden *)
-PROCEDURE (this: ErrorHandler) HandleError* (pos, line, col: LONGINT; IN msg: ARRAY OF CHAR),
+PROCEDURE (this: ErrorHandler) HandleError* (pos, line, col: LONGINT; VAR msg: ARRAY OF CHAR),
 																	NEW, EXTENSIBLE;
 BEGIN
 	IF this.cont & (pos - this.lastErrorPos >= this.configMinErrorDist) & (this.nofErrors < this.configMaxErrNum) THEN

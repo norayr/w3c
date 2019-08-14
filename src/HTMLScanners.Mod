@@ -80,7 +80,7 @@ END IsWhiteSpace;
 
 PROCEDURE (this: Scanner) GetStr*(type: LONGINT): String, NEW;
 BEGIN
-	IF type IN this.stringPooling THEN RETURN this.stringPool.Get(this.dynstr)
+	IF type VAR this.stringPooling THEN RETURN this.stringPool.Get(this.dynstr)
 	ELSE RETURN this.dynstr.ToString()
 	END
 END GetStr;
@@ -107,7 +107,7 @@ BEGIN
 	RETURN this.oldpos
 END GetOldPos;
 
-PROCEDURE (this: Scanner) Error(IN msg: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Scanner) Error(VAR msg: ARRAY OF CHAR), NEW;
 BEGIN
 	this.sym := Invalid;
 	this.errorHandler.HandleError(this.GetPos(), this.line, this.col, msg);
@@ -154,7 +154,7 @@ PROCEDURE (this: Scanner) MapEntityName(ref: String): CHAR, NEW;
 	VAR f: Files.File; pos, len, code, res: LONGINT;
 		line, key, val: ARRAY 64 OF CHAR;
 		
-		PROCEDURE ReadLine(rd: Files.Reader; OUT line: ARRAY OF CHAR);
+		PROCEDURE ReadLine(rd: Files.Reader; VAR line: ARRAY OF CHAR);
 			VAR b: SHORTINT; i: LONGINT;
 		BEGIN
 			REPEAT rd.ReadByte(b) UNTIL (b >= ORD(" ")) OR rd.eof;
@@ -312,7 +312,7 @@ END ScanComment;
 		Possible results:
 		Invalid
 		CharData	*)
-PROCEDURE (this: Scanner) ScanTo (IN tag: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Scanner) ScanTo (VAR tag: ARRAY OF CHAR), NEW;
 	VAR i, len: LONGINT;
 BEGIN
 	this.dynstr.Clear;

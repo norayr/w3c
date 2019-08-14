@@ -1,5 +1,6 @@
 VOC=/opt/voc/bin/voc
 
 all:
-		$(VOC) -s w3cDStrings.Mod
+		$(VOC) -s src/bbStrings.Mod
+		$(VOC) -s src/w3cDStrings.Mod
 

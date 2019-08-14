@@ -7,7 +7,7 @@ With statistics and pool dump: No
 2017-01-27, J. Templ, adapted for BlackBox from ETH Oberon A2; original author Stefan Walthert 
 *)
 
-IMPORT Strings;
+IMPORT Strings, bbStrings;
 
 CONST
 	InitialSize = 64; (* of DynamicString *)
@@ -67,7 +67,8 @@ BEGIN
 	IF minSize >= this.bufferSize THEN
 		REPEAT this.bufferSize := 2 * this.bufferSize; UNTIL (this.bufferSize > minSize);
 		NEW(newBuffer, this.bufferSize);
-		newBuffer^ := this.buffer^$;
+    COPY("", newBuffer^);
+    Strings.Append(this.buffer^, newBuffer^);
 		this.buffer := newBuffer
 	END
 END AdjustBufferSize;
@@ -104,12 +105,12 @@ BEGIN
 	END
 END AppendChar;
 
-PROCEDURE (this: DynamicString) Append*(IN str: ARRAY OF CHAR);
+PROCEDURE (this: DynamicString) Append*(VAR str: ARRAY OF CHAR);
 	VAR strLength: LONGINT;
 BEGIN
-	strLength := LEN(str$);
+	strLength := Strings.Length(str);
 	IF (this.length + strLength + 1 >= this.bufferSize) THEN this.AdjustBufferSize(this.length + strLength + 1) END;
-	Strings.Replace(this.buffer, this.length, 0, str);
+	bbStrings.Replace(this.buffer^, this.length, 0, str);
 	INC(this.length, strLength)
 END Append;
 
@@ -184,7 +185,7 @@ BEGIN
 	END
 END CopyFrom;
 
-PROCEDURE (this: DynamicString) EqualsTo*(IN string: ARRAY OF CHAR; ignoreCase: BOOLEAN): BOOLEAN;
+PROCEDURE (this: DynamicString) EqualsTo*(VAR string: ARRAY OF CHAR; ignoreCase: BOOLEAN): BOOLEAN;
 	VAR len: LONGINT; result: BOOLEAN; i: LONGINT;
 BEGIN
 	len := LEN(string$);
@@ -225,7 +226,7 @@ BEGIN
 	NEW(this.hashtable, InitialCapacity)
 END Init;
 
-PROCEDURE Hash(IN s: ARRAY OF CHAR): LONGINT;
+PROCEDURE Hash(VAR s: ARRAY OF CHAR): LONGINT;
 	VAR hashcode, i: LONGINT; ch: CHAR;
 BEGIN
 	hashcode := 0; i := 0; ch := s[0];
@@ -236,7 +237,7 @@ BEGIN
 	RETURN hashcode
 END Hash;
 
-PROCEDURE Find(IN s: ARRAY OF CHAR; hashcode: LONGINT; IN entry: HashTableEntry): String;
+PROCEDURE Find(VAR s: ARRAY OF CHAR; hashcode: LONGINT; VAR entry: HashTableEntry): String;
 	VAR e: HashTableEntries;
 BEGIN
 	IF entry.value # NIL THEN
@@ -274,7 +275,7 @@ BEGIN
 	END
 END Add;
 
-PROCEDURE MoveEntries(IN entry: HashTableEntry; newht: HashTable; VAR free: HashTableEntries);
+PROCEDURE MoveEntries(VAR entry: HashTableEntry; newht: HashTable; VAR free: HashTableEntries);
 	VAR len: LONGINT; e, n: HashTableEntries;
 BEGIN
 	IF entry.value # NIL THEN
@@ -322,7 +323,7 @@ BEGIN
 END Get;
 
 (* creates, initializes and returns a new String object *)
-PROCEDURE NewString* (IN str: ARRAY OF CHAR): String;
+PROCEDURE NewString* (VAR str: ARRAY OF CHAR): String;
 	VAR s: String;
 BEGIN
 	NEW(s, LEN(str$) + 1); s^ := str$; 
@@ -346,7 +347,7 @@ BEGIN
 END NewPool;
 
 (* returns the number of occurences of pat within string *)
-PROCEDURE Count* (IN string, pat: ARRAY OF CHAR): LONGINT;
+PROCEDURE Count* (VAR string, pat: ARRAY OF CHAR): LONGINT;
 	VAR count, patLen, pos: LONGINT;
 BEGIN
 	ASSERT(pat # "", 20);
@@ -361,10 +362,10 @@ END Count;
  *      separator # "":         LEN(Result) = 1 + <Number of occurences of 'pat' in 'string'>
  *      StringArray[i] # NIL (0 <= i <= LEN(Result) - 1)
 *)
-PROCEDURE Split*(IN string, separator: ARRAY OF CHAR): StringArray;
+PROCEDURE Split*(VAR string, separator: ARRAY OF CHAR): StringArray;
 	VAR count, sepLen, index, pos, next: LONGINT; result: StringArray;
 	
-	PROCEDURE Copy (IN src: ARRAY OF CHAR; pos, len: LONGINT; OUT dst: ARRAY OF CHAR);
+	PROCEDURE Copy (VAR src: ARRAY OF CHAR; pos, len: LONGINT; VAR dst: ARRAY OF CHAR);
 		VAR i: LONGINT;
 	BEGIN
 		FOR i := 0 TO len - 1 DO dst[i] := src[pos + i] END;

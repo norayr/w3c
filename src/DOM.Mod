@@ -193,13 +193,13 @@ VAR
 	generatedElement*: Element; (* return value from generator command *)
 
 PROCEDURE^ (this: Element) SetDocument*(document: Document), NEW, EXTENSIBLE;
-PROCEDURE^ (this: Element) GetIdElement*(IN name, id: ARRAY OF CHAR): Element, NEW, EXTENSIBLE;
-PROCEDURE^ (this: Element) GetAttribute*(IN name: ARRAY OF CHAR): Attribute, NEW, EXTENSIBLE;
+PROCEDURE^ (this: Element) GetIdElement*(VAR name, id: ARRAY OF CHAR): Element, NEW, EXTENSIBLE;
+PROCEDURE^ (this: Element) GetAttribute*(VAR name: ARRAY OF CHAR): Attribute, NEW, EXTENSIBLE;
 PROCEDURE^ (this: Element) AddAttribute*(attribute: Attribute), NEW, EXTENSIBLE;
 PROCEDURE^ (this: NotationDecl) GetPublicId*(): String, NEW;
 PROCEDURE^ (this: NotationDecl) GetSystemId*(): String, NEW;
 PROCEDURE^ NewLine(w: Streams.Writer; level: LONGINT);
-PROCEDURE^ EscapeString(w: Streams.Writer; IN string: ARRAY OF CHAR);
+PROCEDURE^ EscapeString(w: Streams.Writer; VAR string: ARRAY OF CHAR);
 
 
 (* ------ Content ------ *)
@@ -236,7 +236,7 @@ BEGIN
 	RETURN this.name
 END GetName;
 
-PROCEDURE (this: NameContent) SetName*(IN name: ARRAY OF CHAR), NEW;
+PROCEDURE (this: NameContent) SetName*(VAR name: ARRAY OF CHAR), NEW;
 BEGIN
 	this.name := DStrings.NewString(name)
 END SetName;
@@ -454,7 +454,7 @@ BEGIN
 	RETURN this.version
 END GetVersion;
 
-PROCEDURE (this: TextDecl) SetVersion*(IN version: ARRAY OF CHAR), NEW;
+PROCEDURE (this: TextDecl) SetVersion*(VAR version: ARRAY OF CHAR), NEW;
 BEGIN
 	this.version := DStrings.NewString(version)
 END SetVersion;
@@ -464,7 +464,7 @@ BEGIN
 	RETURN this.encoding
 END GetEncoding;
 
-PROCEDURE (this: TextDecl) SetEncoding*(IN encoding: ARRAY OF CHAR), NEW;
+PROCEDURE (this: TextDecl) SetEncoding*(VAR encoding: ARRAY OF CHAR), NEW;
 BEGIN
 	this.encoding := DStrings.NewString(encoding)
 END SetEncoding;
@@ -533,7 +533,7 @@ BEGIN
 	END
 END AddMarkupDecl;
 
-PROCEDURE (this: DocTypeDecl) GetElementDecl*(IN name: ARRAY OF CHAR): ElementDecl, NEW;
+PROCEDURE (this: DocTypeDecl) GetElementDecl*(VAR name: ARRAY OF CHAR): ElementDecl, NEW;
 	VAR p: ANYPTR;
 BEGIN
 	p := this.elementDecls.Get(name);
@@ -542,7 +542,7 @@ BEGIN
 	END
 END GetElementDecl;
 
-PROCEDURE (this: DocTypeDecl) GetNotationDecl*(IN name: ARRAY OF CHAR): NotationDecl, NEW;
+PROCEDURE (this: DocTypeDecl) GetNotationDecl*(VAR name: ARRAY OF CHAR): NotationDecl, NEW;
 	VAR p: ANYPTR;
 BEGIN
 	p := this.elementDecls.Get(name);
@@ -551,7 +551,7 @@ BEGIN
 	END
 END GetNotationDecl;
 
-PROCEDURE (this: DocTypeDecl) GetEntityDecl*(IN name: ARRAY OF CHAR; type: INTEGER): EntityDecl, NEW;
+PROCEDURE (this: DocTypeDecl) GetEntityDecl*(VAR name: ARRAY OF CHAR; type: INTEGER): EntityDecl, NEW;
 	VAR p: ANYPTR;
 BEGIN
 	p := NIL;
@@ -612,7 +612,7 @@ BEGIN
 	RETURN this.systemId
 END GetSystemId;
 
-PROCEDURE (this: NotationDecl) SetSystemId*(IN systemId: ARRAY OF CHAR), NEW;
+PROCEDURE (this: NotationDecl) SetSystemId*(VAR systemId: ARRAY OF CHAR), NEW;
 BEGIN
 	this.systemId := DStrings.NewString(systemId)
 END SetSystemId;
@@ -622,7 +622,7 @@ BEGIN
 	RETURN this.publicId
 END GetPublicId;
 
-PROCEDURE (this: NotationDecl) SetPublicId*(IN publicId: ARRAY OF CHAR), NEW;
+PROCEDURE (this: NotationDecl) SetPublicId*(VAR publicId: ARRAY OF CHAR), NEW;
 BEGIN
 	this.publicId := DStrings.NewString(publicId)
 END SetPublicId;
@@ -664,7 +664,7 @@ BEGIN
 	RETURN this.value
 END GetValue;
 
-PROCEDURE (this: EntityDecl) SetValue*(IN value: ARRAY OF CHAR), NEW;
+PROCEDURE (this: EntityDecl) SetValue*(VAR value: ARRAY OF CHAR), NEW;
 BEGIN
 	this.value := DStrings.NewString(value)
 END SetValue;
@@ -674,7 +674,7 @@ BEGIN
 	RETURN this.notationName
 END GetNotationName;
 
-PROCEDURE (this: EntityDecl) SetNotationName*(IN notationName: ARRAY OF CHAR), NEW;
+PROCEDURE (this: EntityDecl) SetNotationName*(VAR notationName: ARRAY OF CHAR), NEW;
 BEGIN
 	this.notationName := DStrings.NewString(notationName)
 END SetNotationName;
@@ -731,7 +731,7 @@ BEGIN
 	this.content := lcp
 END SetContent;
 
-PROCEDURE (this: ElementDecl) GetAttributeDecl*(IN name: ARRAY OF CHAR): AttributeDecl, NEW;
+PROCEDURE (this: ElementDecl) GetAttributeDecl*(VAR name: ARRAY OF CHAR): AttributeDecl, NEW;
 	VAR nc: ANYPTR;
 BEGIN
 	nc := this.attributeDecls.Get(name);
@@ -813,7 +813,7 @@ BEGIN
 	RETURN this.name
 END GetName;
 
-PROCEDURE (this: NameContentParticle) SetName*(IN name: ARRAY OF CHAR), NEW;
+PROCEDURE (this: NameContentParticle) SetName*(VAR name: ARRAY OF CHAR), NEW;
 BEGIN
 	this.name := DStrings.NewString(name)
 END SetName;
@@ -895,7 +895,7 @@ BEGIN
 	RETURN this.defaultValue
 END GetDefaultValue;
 
-PROCEDURE (this: AttributeDecl) SetDefaultValue*(IN defaultValue: ARRAY OF CHAR), NEW;
+PROCEDURE (this: AttributeDecl) SetDefaultValue*(VAR defaultValue: ARRAY OF CHAR), NEW;
 BEGIN
 	this.defaultValue := DStrings.NewString(defaultValue)
 END SetDefaultValue;
@@ -916,7 +916,7 @@ BEGIN
 	RETURN this.allowedValues.GetEnumerator()
 END GetAllowedValues;
 
-PROCEDURE (this: AttributeDecl) AddAllowedValue*(IN value: ARRAY OF CHAR), NEW;
+PROCEDURE (this: AttributeDecl) AddAllowedValue*(VAR value: ARRAY OF CHAR), NEW;
 	VAR nameContent: NameContent;
 BEGIN
 	NEW(nameContent); nameContent.Init(); nameContent.SetName(value);
@@ -1071,7 +1071,7 @@ BEGIN
 	this.coll.Add(c)
 END AddContent;
 
-PROCEDURE (this: ExternalEntityRef) GetIdElement(IN name, id: ARRAY OF CHAR): Element, NEW;
+PROCEDURE (this: ExternalEntityRef) GetIdElement(VAR name, id: ARRAY OF CHAR): Element, NEW;
 	VAR contents: Objects.Enumerator; p: ANYPTR; retElement: Element;
 BEGIN
 	retElement := NIL;
@@ -1121,7 +1121,7 @@ BEGIN
 	RETURN this.len
 END GetLength;
 
-PROCEDURE (this: ArrayChars) SetStr*(IN str: ARRAY OF CHAR), NEW;
+PROCEDURE (this: ArrayChars) SetStr*(VAR str: ARRAY OF CHAR), NEW;
 BEGIN
 	this.str := DStrings.NewString(str);
 	this.len := LEN(str$)
@@ -1185,7 +1185,7 @@ BEGIN
 	RETURN this.target
 END GetTarget;
 
-PROCEDURE (this: ProcessingInstruction) SetTarget*(IN target: ARRAY OF CHAR), NEW;
+PROCEDURE (this: ProcessingInstruction) SetTarget*(VAR target: ARRAY OF CHAR), NEW;
 BEGIN
 	this.target := DStrings.NewString(target)
 END SetTarget;
@@ -1195,7 +1195,7 @@ BEGIN
 	RETURN this.instruction
 END GetInstruction;
 
-PROCEDURE (this: ProcessingInstruction) SetInstruction*(IN instruction: ARRAY OF CHAR), NEW;
+PROCEDURE (this: ProcessingInstruction) SetInstruction*(VAR instruction: ARRAY OF CHAR), NEW;
 BEGIN
 	this.instruction := DStrings.NewString(instruction)
 END SetInstruction;
@@ -1217,7 +1217,7 @@ BEGIN
 	this.decl := NIL;
 END Init;
 
-PROCEDURE (this: Attribute) IsAllowedValue*(IN value: ARRAY OF CHAR): BOOLEAN, NEW;
+PROCEDURE (this: Attribute) IsAllowedValue*(VAR value: ARRAY OF CHAR): BOOLEAN, NEW;
 BEGIN
 	IF this.decl = NIL THEN
 		RETURN TRUE
@@ -1262,7 +1262,7 @@ BEGIN
 	RETURN this.value
 END GetValue;
 
-PROCEDURE (this: Attribute) SetValue*(IN value: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Attribute) SetValue*(VAR value: ARRAY OF CHAR), NEW;
 BEGIN
 	IF this.IsAllowedValue(value) THEN
 		this.value := DStrings.NewString(value)
@@ -1360,7 +1360,7 @@ BEGIN
 	END;
 END SetDocument;
 
-PROCEDURE (this: Element) SetName*(IN name: ARRAY OF CHAR), NEW, EXTENSIBLE;
+PROCEDURE (this: Element) SetName*(VAR name: ARRAY OF CHAR), NEW, EXTENSIBLE;
 BEGIN
 	this.name := DStrings.NewString(name)
 END SetName;
@@ -1384,7 +1384,7 @@ BEGIN
 	END
 END GetId;
 
-PROCEDURE (this: Element) GetIdElement*(IN name, id: ARRAY OF CHAR): Element, NEW, EXTENSIBLE;
+PROCEDURE (this: Element) GetIdElement*(VAR name, id: ARRAY OF CHAR): Element, NEW, EXTENSIBLE;
 	VAR contents: Objects.Enumerator; content: ANYPTR; idString: String; retElement: Element;
 BEGIN
 	retElement := NIL;
@@ -1406,7 +1406,7 @@ BEGIN
 	RETURN retElement
 END GetIdElement;
 
-PROCEDURE (this: Element) RemoveAttributeInternal(IN name: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Element) RemoveAttributeInternal(VAR name: ARRAY OF CHAR), NEW;
 	VAR a: Attribute;
 BEGIN (* caller holds object lock *)
 	IF (this.attributes # NIL) THEN
@@ -1438,18 +1438,18 @@ BEGIN
 	END;
 END AddAttribute;
 
-PROCEDURE (this: Element) RemoveAttribute*(IN name: ARRAY OF CHAR), NEW, EXTENSIBLE;
+PROCEDURE (this: Element) RemoveAttribute*(VAR name: ARRAY OF CHAR), NEW, EXTENSIBLE;
 BEGIN
 	this.RemoveAttributeInternal(name);
 END RemoveAttribute;
 
-PROCEDURE (this: Element) SetAttributeValue*(IN name, value: ARRAY OF CHAR), NEW, EXTENSIBLE;
+PROCEDURE (this: Element) SetAttributeValue*(VAR name, value: ARRAY OF CHAR), NEW, EXTENSIBLE;
 	VAR attribute: Attribute;
 BEGIN
 	NEW(attribute); attribute.Init; attribute.SetName(name); attribute.SetValue(value); this.AddAttribute(attribute)
 END SetAttributeValue;
 
-PROCEDURE (this: Element) GetAttribute*(IN name: ARRAY OF CHAR): Attribute, NEW, EXTENSIBLE;
+PROCEDURE (this: Element) GetAttribute*(VAR name: ARRAY OF CHAR): Attribute, NEW, EXTENSIBLE;
 	VAR a: Attribute;
 BEGIN
 	a := this.attributes;
@@ -1459,7 +1459,7 @@ BEGIN
 	RETURN a;
 END GetAttribute;
 
-PROCEDURE (this: Element) GetAttributeValue*(IN name: ARRAY OF CHAR): String, NEW, EXTENSIBLE;
+PROCEDURE (this: Element) GetAttributeValue*(VAR name: ARRAY OF CHAR): String, NEW, EXTENSIBLE;
 	VAR a: Attribute;
 BEGIN
 	a := this.GetAttribute(name);
@@ -1500,7 +1500,7 @@ BEGIN
 	IF a.next # NIL THEN RETURN a.next(Attribute) ELSE RETURN NIL END
 END GetNextAttribute;
 
-PROCEDURE (this: Element) HasAttribute*(IN name: ARRAY OF CHAR): BOOLEAN, NEW, EXTENSIBLE;
+PROCEDURE (this: Element) HasAttribute*(VAR name: ARRAY OF CHAR): BOOLEAN, NEW, EXTENSIBLE;
 BEGIN
 	RETURN this.GetAttribute(name) # NIL;
 END HasAttribute;
@@ -1619,7 +1619,7 @@ BEGIN
 	this.timestamp := 0;
 END Init;
 
-PROCEDURE (this: ElementRegistry) RegisterElement*(IN name: ARRAY OF CHAR; 
+PROCEDURE (this: ElementRegistry) RegisterElement*(VAR name: ARRAY OF CHAR; 
 																					generator: GeneratorProcedure), NEW;
 	VAR e: ElementEntry; p: ANYPTR;
 BEGIN
@@ -1633,8 +1633,8 @@ BEGIN
 	INC(this.timestamp);
 END RegisterElement;
 
-PROCEDURE  (this: ElementRegistry) RegisterElementByName*(IN name: ARRAY OF CHAR;
-																		IN generatorModule, generatorProcedure: Kernel.Name), NEW;
+PROCEDURE  (this: ElementRegistry) RegisterElementByName*(VAR name: ARRAY OF CHAR;
+																		VAR generatorModule, generatorProcedure: Kernel.Name), NEW;
 	VAR e: ElementEntry; p: ANYPTR;
 BEGIN
 	ASSERT((generatorModule # "") & (generatorProcedure # ""), 20);
@@ -1652,13 +1652,13 @@ BEGIN
 	INC(this.timestamp);
 END RegisterElementByName;
 
-PROCEDURE  (this: ElementRegistry) UnregisterElement*(IN name: ARRAY OF CHAR), NEW;
+PROCEDURE  (this: ElementRegistry) UnregisterElement*(VAR name: ARRAY OF CHAR), NEW;
 BEGIN
 	this.generators.Remove(name);
 	INC(this.timestamp);
 END UnregisterElement;
 
-PROCEDURE  (this: ElementRegistry) InstantiateElement*(IN name: ARRAY OF CHAR): Element, NEW;
+PROCEDURE  (this: ElementRegistry) InstantiateElement*(VAR name: ARRAY OF CHAR): Element, NEW;
 	VAR element: Element; entry: ElementEntry; p: ANYPTR;
 		module: Kernel.Module;
 BEGIN
@@ -1724,7 +1724,7 @@ END GetElements;
 
 (**	Write an 0X-terminated UTF8 string to a stream (excl. 0X). XML special characters are escaped.
 	Also works for ASCII strings. *)
-PROCEDURE UTF8ToStream*(IN string: ARRAY OF CHAR; w: Streams.Writer; VAR res: LONGINT);
+PROCEDURE UTF8ToStream*(VAR string: ARRAY OF CHAR; w: Streams.Writer; VAR res: LONGINT);
 	VAR codeLength, stringLength, i: LONGINT; ch: CHAR;
 BEGIN
 	ASSERT(w # NIL, 20);
@@ -1856,7 +1856,7 @@ BEGIN
 	w.Ln; WHILE level > 0 DO w.Char(Tab); DEC(level) END
 END NewLine;
 
-PROCEDURE EscapeString(w: Streams.Writer; IN string: ARRAY OF CHAR);
+PROCEDURE EscapeString(w: Streams.Writer; VAR string: ARRAY OF CHAR);
 	VAR i: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; ch := string[0];

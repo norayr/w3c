@@ -320,13 +320,13 @@ END Reset;
 
 PROCEDURE (this: Dictionary) GetNumberOfElements*(): LONGINT, NEW, ABSTRACT;
 
-PROCEDURE (this: Dictionary) Get*(IN key: ARRAY OF CHAR): ANYPTR, NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) Get*(VAR key: ARRAY OF CHAR): ANYPTR, NEW, ABSTRACT;
 
 PROCEDURE (this: Dictionary) GetEnumerator*(): DictEnumerator, NEW, ABSTRACT;
 
-PROCEDURE (this: Dictionary) Add*(IN key: ARRAY OF CHAR; p: ANYPTR), NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) Add*(VAR key: ARRAY OF CHAR; p: ANYPTR), NEW, ABSTRACT;
 
-PROCEDURE (this: Dictionary) Remove*(IN key: ARRAY OF CHAR), NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) Remove*(VAR key: ARRAY OF CHAR), NEW, ABSTRACT;
 
 
 (* ------ArrayDictEnumerator ------ *)
@@ -379,7 +379,7 @@ BEGIN
 	RETURN this.nofElems
 END GetNumberOfElements;
 
-PROCEDURE (this: ArrayDict) Get*(IN key: ARRAY OF CHAR): ANYPTR;
+PROCEDURE (this: ArrayDict) Get*(VAR key: ARRAY OF CHAR): ANYPTR;
 	VAR i: LONGINT;
 BEGIN
 	i := 0;
@@ -408,7 +408,7 @@ BEGIN
 	END
 END Grow;
 
-PROCEDURE (this: ArrayDict) Add*(IN key: ARRAY OF CHAR; p: ANYPTR);
+PROCEDURE (this: ArrayDict) Add*(VAR key: ARRAY OF CHAR; p: ANYPTR);
 BEGIN
 	IF this.Get(key) = NIL THEN
 		IF this.nofElems = LEN(this.elems) THEN this.Grow() END;
@@ -420,7 +420,7 @@ BEGIN
 	END
 END Add;
 
-PROCEDURE (this: ArrayDict) Remove*(IN key: ARRAY OF CHAR);
+PROCEDURE (this: ArrayDict) Remove*(VAR key: ARRAY OF CHAR);
 	VAR i: LONGINT;
 BEGIN
 	i := 0;

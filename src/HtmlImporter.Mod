@@ -104,7 +104,7 @@ MODULE W3cHtmlImporter;
 		
 		(* caching *)
 		cssParser: CSSParsers.Parser; (* reusable parser for inline style attribute *)
-		inlineStyle: CSS.RuleSet; (* if AttrStyle IN attrSet, for avoiding to parse style twice per element *)
+		inlineStyle: CSS.RuleSet; (* if AttrStyle VAR attrSet, for avoiding to parse style twice per element *)
 		colorMap: Files.Reader;
 		dstr: DStrings.DynamicString;
 		
@@ -276,7 +276,7 @@ MODULE W3cHtmlImporter;
 
 	PROCEDURE WriteTab(ctx: Context);
 	BEGIN
-		IF ~(state IN {Text, Space}) THEN WriteSpace(ctx) END;
+		IF ~(state VAR {Text, Space}) THEN WriteSpace(ctx) END;
 		state := Tab
 	END WriteTab;
 
@@ -304,7 +304,7 @@ MODULE W3cHtmlImporter;
 		END;
 	END SetCtxAttr;
 
-	PROCEDURE WriteText(IN str: ARRAY OF CHAR; ctx: Context);
+	PROCEDURE WriteText(VAR str: ARRAY OF CHAR; ctx: Context);
 		VAR i: LONGINT; ch, nch: CHAR; rider: TextModels.Writer; attr: TextModels.Attributes;
 	BEGIN
 		i := 0; ch := str[0]; SetCtxAttr(ctx);
@@ -632,11 +632,11 @@ MODULE W3cHtmlImporter;
 	
 	(* color name mapping could also be added to the CSS parser but since it may also be needed in HTML
 		attributes, we put it into the HTML importer where it serves both. *)
-	PROCEDURE MapColorName(IN ident: ARRAY OF CHAR): LONGINT;
+	PROCEDURE MapColorName(VAR ident: ARRAY OF CHAR): LONGINT;
 		VAR f: Files.File; pos, len, color, res: LONGINT;
 			line, key, val: ARRAY 64 OF CHAR; red, green, blue: ARRAY 3 OF CHAR;
 			
-			PROCEDURE ReadLine(rd: Files.Reader; OUT line: ARRAY OF CHAR);
+			PROCEDURE ReadLine(rd: Files.Reader; VAR line: ARRAY OF CHAR);
 				VAR b: SHORTINT; i: LONGINT;
 			BEGIN
 				REPEAT rd.ReadByte(b) UNTIL (b >= ORD(" ")) OR rd.eof;
@@ -675,7 +675,7 @@ MODULE W3cHtmlImporter;
 	PROCEDURE SetColorTerm(term: CSS.Term; ctx: Context);
 		VAR ident: String; color: LONGINT; red, green, blue, alpha: INTEGER;
 	BEGIN
-		IF term.GetType() IN {CSS.Function, CSS.IntNumber, CSS.Color} THEN
+		IF term.GetType() VAR {CSS.Function, CSS.IntNumber, CSS.Color} THEN
 			term.GetColor(red, green, blue, alpha);
 			color := red + ASH(green, 8) + ASH(blue, 16)
 		ELSE ident := term.GetStringVal();
@@ -754,8 +754,8 @@ MODULE W3cHtmlImporter;
 			IF ident # NIL THEN
 				IF ident^ = "normal" THEN weight := Fonts.normal
 				ELSIF ident^ = "bold" THEN weight := Fonts.bold
-				ELSIF ident^ = "bolder" THEN weight := MIN(900, ctx.weight + 100)
-				ELSIF ident^ = "lighter" THEN weight := MIN(100, ctx.weight - 100)
+				ELSIF ident^ = "bolder" THEN weight := MVAR(900, ctx.weight + 100)
+				ELSIF ident^ = "lighter" THEN weight := MVAR(100, ctx.weight - 100)
 				ELSIF ident^ = "inherit" THEN weight := ctx.parent.weight
 				ELSIF ident^ = "initial" THEN weight := WeightInitial
 				ELSE RETURN
@@ -883,7 +883,7 @@ MODULE W3cHtmlImporter;
 	PROCEDURE ProcessStyle (ctx: Context);
 		VAR decls: Objects.Enumerator; decl: CSS.Declaration; prop: String;
 	BEGIN
-		IF Attr_Style IN ctx.attrSet THEN
+		IF Attr_Style VAR ctx.attrSet THEN
 			decls := inlineStyle.GetDeclarations();
 			WHILE decls.HasMoreElements() DO
 				decl := decls.GetNext()(CSS.Declaration);
@@ -935,53 +935,53 @@ MODULE W3cHtmlImporter;
 
 	PROCEDURE SetDefaultDisplay(display: SHORTINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_Display IN ctx.attrSet) THEN ctx.display := display END
+		IF ~(Attr_Display VAR ctx.attrSet) THEN ctx.display := display END
 	END SetDefaultDisplay;
 
 	PROCEDURE SetDefaultWeight(weight: LONGINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_FontWeight IN ctx.attrSet) THEN ctx.weight := weight END
+		IF ~(Attr_FontWeight VAR ctx.attrSet) THEN ctx.weight := weight END
 	END SetDefaultWeight;
 
 	PROCEDURE SetDefaultSize(size: LONGINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_FontSize IN ctx.attrSet) THEN ctx.size := size END
+		IF ~(Attr_FontSize VAR ctx.attrSet) THEN ctx.size := size END
 	END SetDefaultSize;
 
 	PROCEDURE SetDefaultStyle(style: LONGINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_FontStyle IN ctx.attrSet) THEN ctx.style := {style} END
+		IF ~(Attr_FontStyle VAR ctx.attrSet) THEN ctx.style := {style} END
 	END SetDefaultStyle;
 
 	PROCEDURE SetDefaultColor(color: LONGINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_Color IN ctx.attrSet) THEN ctx.color := color END
+		IF ~(Attr_Color VAR ctx.attrSet) THEN ctx.color := color END
 	END SetDefaultColor;
 
-	PROCEDURE SetDefaultFontFamily(IN fontFamily: ARRAY OF CHAR; ctx: Context);
+	PROCEDURE SetDefaultFontFamily(VAR fontFamily: ARRAY OF CHAR; ctx: Context);
 	BEGIN
-		IF ~(Attr_FontFamily IN ctx.attrSet) THEN ctx.typeface := fontFamily$ END
+		IF ~(Attr_FontFamily VAR ctx.attrSet) THEN ctx.typeface := fontFamily$ END
 	END SetDefaultFontFamily;
 
 	PROCEDURE SetDefaultMarginLeft(marginLeft: LONGINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_MarginLeft IN ctx.attrSet) THEN INC(ctx.left, marginLeft) END;
+		IF ~(Attr_MarginLeft VAR ctx.attrSet) THEN INC(ctx.left, marginLeft) END;
 	END SetDefaultMarginLeft;
 
 	PROCEDURE SetDefaultMargin(margin: LONGINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_MarginTop IN ctx.attrSet) THEN ctx.marginTop := margin END;
-		IF ~(Attr_MarginBottom IN ctx.attrSet) THEN ctx.marginBottom := margin END
+		IF ~(Attr_MarginTop VAR ctx.attrSet) THEN ctx.marginTop := margin END;
+		IF ~(Attr_MarginBottom VAR ctx.attrSet) THEN ctx.marginBottom := margin END
 	END SetDefaultMargin;
 
 	PROCEDURE SetDefaultSmaller(ctx: Context);
 	BEGIN
-		IF ~(Attr_FontSize IN ctx.attrSet) THEN ctx.size := Smaller(ctx) END
+		IF ~(Attr_FontSize VAR ctx.attrSet) THEN ctx.size := Smaller(ctx) END
 	END SetDefaultSmaller;
 
 	PROCEDURE SetDefaultListStyleType(listStyleType: SHORTINT; ctx: Context);
 	BEGIN
-		IF ~(Attr_Type IN ctx.attrSet) THEN ctx.listStyleType := listStyleType END;
+		IF ~(Attr_Type VAR ctx.attrSet) THEN ctx.listStyleType := listStyleType END;
 	END SetDefaultListStyleType;
 		
 	PROCEDURE^ WriteElement (ctx: Context);
@@ -1116,7 +1116,7 @@ MODULE W3cHtmlImporter;
 	BEGIN
 		SetDefaultListStyleType(ListStyleType_Decimal, ctx);
 		savedListNum := listNum;
-		IF ~(Attr_Start IN ctx.attrSet) THEN listNum := 1 END;
+		IF ~(Attr_Start VAR ctx.attrSet) THEN listNum := 1 END;
 		WriteBlock(ctx); listNum := savedListNum
 	END WriteOL;
 
@@ -1156,7 +1156,7 @@ MODULE W3cHtmlImporter;
 
 	PROCEDURE WriteSU (alignEm: REAL; ctx: Context);
 	BEGIN
-		IF ~(Attr_VerticalAlign IN ctx.attrSet) THEN INC(ctx.offset, Round(alignEm * ctx.size)) END;
+		IF ~(Attr_VerticalAlign VAR ctx.attrSet) THEN INC(ctx.offset, Round(alignEm * ctx.size)) END;
 		SetDefaultSmaller(ctx); WriteInline(ctx)
 	END WriteSU;
 
@@ -1216,7 +1216,7 @@ MODULE W3cHtmlImporter;
 		The text position is not the same as that reported in an error message.
 		For debugging, the unmodified contents can be seen with StoreNative.
 	*)
-	PROCEDURE ImportNative (f: Files.File; OUT s: Stores.Store);
+	PROCEDURE ImportNative (f: Files.File; VAR s: Stores.Store);
 		VAR text: TextModels.Model; utf8Rd: Streams.Utf8FileReader;
 			wr: TextModels.Writer; ch: CHAR; outputCR: BOOLEAN;
 	BEGIN
@@ -1238,7 +1238,7 @@ MODULE W3cHtmlImporter;
 		s := TextViews.dir.New(text);
 	END ImportNative;
 
-	PROCEDURE ImportHtml* (f: Files.File; OUT s: Stores.Store);
+	PROCEDURE ImportHtml* (f: Files.File; VAR s: Stores.Store);
 		VAR text: TextModels.Model; utf8Rd: Streams.Utf8FileReader;
 			htmlParser: HTMLParsers.Parser; dom: DOM.Document; iniCtx: Context;
 			
@@ -1268,8 +1268,8 @@ MODULE W3cHtmlImporter;
 		RETURN sm.u.hGlobal
 	END MediumGlobal;
 
-	PROCEDURE ImportDHtml* (VAR med: WinOle.STGMEDIUM; OUT v: Views.View;
-											OUT w, h: LONGINT; OUT isSingle: BOOLEAN);
+	PROCEDURE ImportDHtml* (VAR med: WinOle.STGMEDIUM; VAR v: Views.View;
+											VAR w, h: LONGINT; VAR isSingle: BOOLEAN);
 		VAR res, adr: LONGINT; ch: SHORTINT;
 			hnd: WinApi.HANDLE; pref: Properties.BoundsPref;
 			f: Files.File; wr: Files.Writer; s: Stores.Store; lineno: LONGINT;

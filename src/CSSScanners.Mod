@@ -105,7 +105,7 @@ BEGIN
 	this.Reset(r, e)
 END Init;
 
-PROCEDURE (this: Scanner) Error(IN msg: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Scanner) Error(VAR msg: ARRAY OF CHAR), NEW;
 BEGIN
 	this.errorHandler.HandleError(this.GetPos(), this.line, this.col, msg);
 	(* note: continuing after an error may lead into an infinite loop; not tested *)
@@ -438,7 +438,7 @@ END Scan;
 
 PROCEDURE (this: Scanner) GetStr*(type: LONGINT): DStrings.String, NEW;
 BEGIN
-	IF type IN this.stringPooling THEN RETURN this.stringPool.Get(this.dynstr)
+	IF type VAR this.stringPooling THEN RETURN this.stringPool.Get(this.dynstr)
 	ELSE RETURN this.dynstr.ToString()
 	END
 END GetStr;

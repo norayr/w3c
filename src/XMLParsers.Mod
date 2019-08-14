@@ -76,9 +76,9 @@ PROCEDURE^ (this: Parser) ExpandCharacterRefs(s: String): String, NEW;
 PROCEDURE^ (this: Parser) ParseStartTag(VAR e: DOM.Element; VAR empty: BOOLEAN), NEW;
 PROCEDURE^ (this: Parser) ParseEndTag(e: DOM.Element), NEW;
 PROCEDURE^ (this: Parser) ParseAttribute(): DOM.Attribute, NEW;
-PROCEDURE^ IsPubidLiteral(IN str: ARRAY OF CHAR): BOOLEAN;
+PROCEDURE^ IsPubidLiteral(VAR str: ARRAY OF CHAR): BOOLEAN;
 PROCEDURE^ StrToInt(str: ARRAY OF CHAR): LONGINT;
-PROCEDURE^ ExpandPredefinedEntity(IN name: ARRAY OF CHAR): CHAR;
+PROCEDURE^ ExpandPredefinedEntity(VAR name: ARRAY OF CHAR): CHAR;
 
 (* initializes a parser with the given scanner. String pooling is turned off initially. *)
 PROCEDURE (this: Parser) Init*(scanner: Scanner.Scanner), NEW;
@@ -87,7 +87,7 @@ BEGIN
 	NEW(this.ds1); this.ds1.Init; NEW(this.ds2); this.ds2.Init;
 END Init;
 
-PROCEDURE (this: Parser) Error(IN msg: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Parser) Error(VAR msg: ARRAY OF CHAR), NEW;
 BEGIN
 	this.scanner.errorHandler.ReportError(this.scanner.GetPos(), this.scanner.line, this.scanner.col, msg);
 		(* note: continuing after an error may lead into an infinite loop; not tested *)
@@ -96,9 +96,9 @@ BEGIN
 
 END Error;
 
-PROCEDURE (this: Parser) CheckSymbol(expectedSymbols: SET; IN errormsg: ARRAY OF CHAR): BOOLEAN, NEW;
+PROCEDURE (this: Parser) CheckSymbol(expectedSymbols: SET; VAR errormsg: ARRAY OF CHAR): BOOLEAN, NEW;
 BEGIN
-	IF ~(this.scanner.sym IN expectedSymbols) THEN
+	IF ~(this.scanner.sym VAR expectedSymbols) THEN
 		this.Error(errormsg); RETURN FALSE
 	ELSE
 		RETURN TRUE
@@ -110,7 +110,7 @@ BEGIN
 	RETURN CHR(SHORT(SHORT(num)))
 END ExpandCharacterRef;
 
-PROCEDURE (this: Parser) ExpandEntityRef(IN name: ARRAY OF CHAR; type: INTEGER): String, NEW;
+PROCEDURE (this: Parser) ExpandEntityRef(VAR name: ARRAY OF CHAR; type: INTEGER): String, NEW;
 	VAR generalEntity: DOM.EntityDecl;
 BEGIN
 	IF this.dtd # NIL THEN
@@ -850,7 +850,7 @@ PROCEDURE (this: Parser) ExpandCharacterRefs(s: String): String, NEW;
 		from, to: LONGINT;
 		ch: CHAR;
 
-	PROCEDURE ReplaceEntity(IN source: ARRAY OF CHAR; VAR srcPos: LONGINT;
+	PROCEDURE ReplaceEntity(VAR source: ARRAY OF CHAR; VAR srcPos: LONGINT;
 												VAR dest: ARRAY OF CHAR; VAR destPos: LONGINT);
 		VAR ch: CHAR; name: ARRAY 32 OF CHAR; sp, np: LONGINT; xch: CHAR;
 	BEGIN
@@ -984,7 +984,7 @@ BEGIN
 	END
 END ParseEntityRef;*)
 
-PROCEDURE IsPubidLiteral(IN str: ARRAY OF CHAR): BOOLEAN;
+PROCEDURE IsPubidLiteral(VAR str: ARRAY OF CHAR): BOOLEAN;
 	VAR i, len: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; len := LEN(str); ch := str[0];
@@ -1008,7 +1008,7 @@ BEGIN
 	RETURN val
 END StrToInt;
 
-PROCEDURE ExpandPredefinedEntity(IN name: ARRAY OF CHAR): CHAR;
+PROCEDURE ExpandPredefinedEntity(VAR name: ARRAY OF CHAR): CHAR;
 	VAR i: LONGINT;
 BEGIN
 	FOR i := 0 TO LEN(predefinedEntities) - 1 DO

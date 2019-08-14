@@ -83,7 +83,7 @@ END Init;
 PROCEDURE (this: Scanner) GetString*(type : LONGINT): DStrings.String, NEW;
 	VAR string : DStrings.String;
 BEGIN
-	IF (type IN this.stringPooling) THEN
+	IF (type VAR this.stringPooling) THEN
 		string := this.stringPool.Get(this.dynstr);
 	ELSE
 		string := this.dynstr.ToString();
@@ -101,7 +101,7 @@ BEGIN
 	RETURN this.oldpos
 END GetOldPos;
 
-PROCEDURE (this: Scanner) Error(IN msg: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Scanner) Error(VAR msg: ARRAY OF CHAR), NEW;
 BEGIN
 	this.sym := Invalid;
 	this.errorHandler.HandleError(this.GetPos(), this.line, this.col, msg);

@@ -79,7 +79,7 @@ END GetError;
 
 PROCEDURE (this: Writer) Char* (ch: CHAR), NEW, ABSTRACT;
 
-PROCEDURE (this: Writer) String* (IN str: ARRAY OF CHAR), NEW, EXTENSIBLE;
+PROCEDURE (this: Writer) String* (VAR str: ARRAY OF CHAR), NEW, EXTENSIBLE;
 	VAR i: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; ch := str[0];

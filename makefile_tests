@@ -1,0 +1,13 @@
+VOC = "/opt/voc/bin/voc"
+
+all: bbstrings
+
+bbstrings:
+						$(VOC) -s src/bbStrings.Mod tests/bbStringsTest.Mod -m
+
+
+clean:
+						rm *.c
+						rm *.h
+						rm *.o
+						rm *.sym

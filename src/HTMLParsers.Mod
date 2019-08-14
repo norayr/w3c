@@ -125,15 +125,15 @@ BEGIN
 	NEW(this.openTagStack); this.openTagStack.Init()
 END Init;
 
-PROCEDURE (this: Parser) Error(IN msg: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Parser) Error(VAR msg: ARRAY OF CHAR), NEW;
 BEGIN
 	this.errorHandler.HandleError(this.scanner.GetPos(), this.scanner.line, this.scanner.col, msg);
 	IF ~this.errorHandler.cont THEN this.scanner.r.ok := FALSE END;
 END Error;
 
-PROCEDURE (this: Parser) CheckSymbol(expectedSymbols: SET; IN errormsg: ARRAY OF CHAR): BOOLEAN, NEW;
+PROCEDURE (this: Parser) CheckSymbol(expectedSymbols: SET; VAR errormsg: ARRAY OF CHAR): BOOLEAN, NEW;
 BEGIN
-	IF ~(this.scanner.sym IN expectedSymbols) THEN
+	IF ~(this.scanner.sym VAR expectedSymbols) THEN
 		this.Error(errormsg); RETURN FALSE
 	ELSE
 		RETURN TRUE
@@ -496,8 +496,8 @@ BEGIN
 	IF name^ = "EMBED" THEN RETURN TRUE END;
 	IF name^ = "HR" THEN RETURN TRUE END;
 	IF name^ = "IMG" THEN RETURN TRUE END;
-	IF name^ = "INPUT" THEN RETURN TRUE END;
-	IF name^ = "LINK" THEN RETURN TRUE END;
+	IF name^ = "VARPUT" THEN RETURN TRUE END;
+	IF name^ = "LVARK" THEN RETURN TRUE END;
 	IF name^ = "META" THEN RETURN TRUE END;
 	IF name^ = "PARAM" THEN RETURN TRUE END;
 	IF name^ = "SOURCE" THEN RETURN TRUE END;
@@ -506,7 +506,7 @@ BEGIN
 	(* not in HTML5 *)
 	IF name^ = "BASEFONT" THEN RETURN TRUE END;
 	IF name^ = "FRAME" THEN RETURN TRUE END;
-	IF name^ = "ISINDEX" THEN RETURN TRUE END;
+	IF name^ = "ISVARDEX" THEN RETURN TRUE END;
 	IF name^ = "KEYGEN" THEN RETURN TRUE END;
 	RETURN FALSE
 END IsVoidTag;
@@ -628,7 +628,7 @@ BEGIN
 	IF name^ = "SUP" THEN RETURN TRUE END;
 	IF name^ = "SPAN" THEN RETURN TRUE END;
 	IF name^ = "BDO" THEN RETURN TRUE END;
-	IF name^ = "INPUT" THEN RETURN TRUE END;
+	IF name^ = "VARPUT" THEN RETURN TRUE END;
 	IF name^ = "SELECT" THEN RETURN TRUE END;
 	IF name^ = "TEXTAREA" THEN RETURN TRUE END;
 	IF name^ = "LABEL" THEN RETURN TRUE END;

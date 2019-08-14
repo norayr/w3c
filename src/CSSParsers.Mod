@@ -40,7 +40,7 @@ TYPE
 	
 	ErrorHandler* = Scanner.ErrorHandler;
 
-PROCEDURE^ (this: Parser) Error(IN msg: ARRAY OF CHAR), NEW;
+PROCEDURE^ (this: Parser) Error(VAR msg: ARRAY OF CHAR), NEW;
 PROCEDURE^ (this: Parser) ParseImport(styleSheet: CSS.StyleSheet), NEW;
 PROCEDURE^ (this: Parser) ParseMedia(styleSheet: CSS.StyleSheet), NEW;
 PROCEDURE^ (this: Parser) ParsePage(): CSS.Page, NEW;
@@ -78,7 +78,7 @@ END Reset;
 
 PROCEDURE (this: Parser) CheckSymbol(expectedSymbols: SET; errormsg: ARRAY OF CHAR): BOOLEAN, NEW;
 BEGIN
-	IF this.scanner.sym IN expectedSymbols THEN
+	IF this.scanner.sym VAR expectedSymbols THEN
 		RETURN TRUE
 	ELSE
 		this.Error(errormsg);
@@ -86,7 +86,7 @@ BEGIN
 	END
 END CheckSymbol;
 
-PROCEDURE (this: Parser) Error(IN msg: ARRAY OF CHAR), NEW;
+PROCEDURE (this: Parser) Error(VAR msg: ARRAY OF CHAR), NEW;
 BEGIN
 	this.errorHandler.HandleError(this.scanner.GetPos(), this.scanner.line, this.scanner.col, msg);
 	(* note: continuing after an error may lead into an infinite loop; not tested *)
@@ -107,7 +107,7 @@ BEGIN
 		IF ~this.CheckSymbol({Scanner.Semicolon}, "';' expected") THEN RETURN styleSheet END;
 		this.scanner.Scan()
 	END;
-	WHILE this.scanner.sym IN {Scanner.Cdo, Scanner.Cdc} DO this.scanner.Scan() END;
+	WHILE this.scanner.sym VAR {Scanner.Cdo, Scanner.Cdc} DO this.scanner.Scan() END;
 	s := this.scanner.GetStr(Str_Keyword);
 	WHILE (this.scanner.sym = Scanner.AtKeyword) & (s^ = 'import') DO
 		this.ParseImport(styleSheet);
@@ -128,7 +128,7 @@ BEGIN
 		ELSIF this.scanner.sym # Scanner.Eof THEN
 			styleSheet.AddRuleSet(this.ParseRuleSet())
 		END;
-		WHILE this.scanner.sym IN {Scanner.Cdo, Scanner.Cdc} DO this.scanner.Scan() END
+		WHILE this.scanner.sym VAR {Scanner.Cdo, Scanner.Cdc} DO this.scanner.Scan() END
 	END;
 	RETURN styleSheet
 END Parse;
@@ -281,7 +281,7 @@ PROCEDURE (this: Parser) ParseSelector(): CSS.Selector, NEW;
 BEGIN
 	NEW(selector); selector.Init;
 	selector.AddSimpleSelector(this.ParseSimpleSelector());
-	WHILE this.scanner.sym IN {Scanner.Ident, Scanner.Asterisk, Scanner.Hash, Scanner.Dot, Scanner.BracketOpen,
+	WHILE this.scanner.sym VAR {Scanner.Ident, Scanner.Asterisk, Scanner.Hash, Scanner.Dot, Scanner.BracketOpen,
 			Scanner.Colon, Scanner.Greater, Scanner.Plus} DO
 		selector.AddSimpleSelector(this.ParseSimpleSelector())
 	END;
@@ -307,7 +307,7 @@ BEGIN
 		simpleSelector.SetElementName(s);
 		IF this.scanner.sym = Scanner.Asterisk THEN this.scanner.Scan() END
 	END;
-	WHILE this.scanner.sym IN {Scanner.Hash, Scanner.Dot, Scanner.BracketOpen, Scanner.Colon} DO
+	WHILE this.scanner.sym VAR {Scanner.Hash, Scanner.Dot, Scanner.BracketOpen, Scanner.Colon} DO
 		CASE this.scanner.sym OF
 		| Scanner.Hash: simpleSelector.AddSubSelector(this.ParseId())
 		| Scanner.Dot: simpleSelector.AddSubSelector(this.ParseClass())
@@ -353,7 +353,7 @@ BEGIN
 	s := this.scanner.GetStr(Str_Selector);
 	attribute.SetName(s);
 	this.scanner.Scan();
-	IF this.scanner.sym IN {Scanner.Equal, Scanner.Includes, Scanner.Dashmatch} THEN
+	IF this.scanner.sym VAR {Scanner.Equal, Scanner.Includes, Scanner.Dashmatch} THEN
 		CASE this.scanner.sym OF
 		| Scanner.Equal: attribute.SetRelation(CSS.Equal)
 		| Scanner.Includes: attribute.SetRelation(CSS.Includes)
@@ -394,7 +394,7 @@ END ParsePseudo;
 PROCEDURE (this: Parser) ParseExprList* (declaration: CSS.Declaration), NEW;
 BEGIN
 	declaration.AddTerm(this.ParseExpr());
-	WHILE ~(this.scanner.sym IN {Scanner.Semicolon, Scanner.BraceClose, Scanner.Important, Scanner.Eof})
+	WHILE ~(this.scanner.sym VAR {Scanner.Semicolon, Scanner.BraceClose, Scanner.Important, Scanner.Eof})
 			& (this.scanner.sym # Scanner.Invalid) DO	(* expr *)
 		this.scanner.Scan();
 		declaration.AddTerm(this.ParseExpr())
@@ -493,7 +493,7 @@ PROCEDURE (this: Parser) ParseTerm (): CSS.Term, NEW;
 	VAR term, mulOp, factor: CSS.Term;
 BEGIN
 	term := this.ParseFactor();
-	WHILE this.scanner.sym IN {Scanner.Asterisk, Scanner.Slash} DO
+	WHILE this.scanner.sym VAR {Scanner.Asterisk, Scanner.Slash} DO
 		NEW(mulOp); mulOp.Init;
 		mulOp.SetType(CSS.Operator);
 		IF this.scanner.sym = Scanner.Asterisk THEN mulOp.SetOperator(CSS.Times)
@@ -511,7 +511,7 @@ PROCEDURE (this: Parser) ParseExpr* (): CSS.Term, NEW;
 BEGIN
 	expr := this.ParseTerm(); first := expr;
 	LOOP
-		IF this.scanner.sym IN {Scanner.Plus, Scanner.Minus} THEN
+		IF this.scanner.sym VAR {Scanner.Plus, Scanner.Minus} THEN
 			NEW(addOp); addOp.Init;
 			addOp.SetType(CSS.Operator);
 			IF this.scanner.sym = Scanner.Plus THEN
@@ -521,7 +521,7 @@ BEGIN
 			END;
 			term := this.ParseTerm();
 			addOp.AddTerm(expr); addOp.AddTerm(term); expr := addOp
-		ELSIF ~(this.scanner.sym IN {Scanner.Semicolon, Scanner.Comma, Scanner.Colon, Scanner.ParenClose, 
+		ELSIF ~(this.scanner.sym VAR {Scanner.Semicolon, Scanner.Comma, Scanner.Colon, Scanner.ParenClose, 
 			Scanner.BraceClose, Scanner.BracketClose, Scanner.Important, Scanner.Eof}) THEN
 			term := this.ParseTerm();
 			IF expr = first THEN
@@ -575,7 +575,7 @@ END ParseRGB;
 
 PROCEDURE (this: Parser) IgnoreKeyword, NEW;
 BEGIN
-	WHILE ~(this.scanner.sym IN {Scanner.BraceOpen, Scanner.Semicolon, Scanner.Eof})
+	WHILE ~(this.scanner.sym VAR {Scanner.BraceOpen, Scanner.Semicolon, Scanner.Eof})
 	& (this.scanner.sym # Scanner.Invalid) DO
 		this.scanner.Scan();
 		IF this.scanner.sym = Scanner.AtKeyword THEN this.IgnoreKeyword() END
