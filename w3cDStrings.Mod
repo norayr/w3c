@@ -21,7 +21,7 @@ TYPE
 	
 	StringArray* = POINTER TO ARRAY OF String;
 	
-	DynamicString* = POINTER TO EXTENSIBLE RECORD
+	DynamicString* = POINTER TO RECORD
 		length-: LONGINT; (* current length of string excluding 0X *)
 		buffer: String; (* { (buffer # NIL) & (LEN(buffer) = bufferSize) & LEN(buffer$) = length } *)
 		bufferSize: LONGINT; (* {bufferSize >= InitialSize} *)
@@ -47,21 +47,21 @@ TYPE
 
 
 (* Set string to empty string without changing bufferSize *)
-PROCEDURE (this: DynamicString) Clear*, NEW;
+PROCEDURE (this: DynamicString) Clear*;
 BEGIN
 	this.buffer[0] := 0X;
 	this.length := 0
 END Clear;
 
 (* constructor *)
-PROCEDURE (this: DynamicString) Init*, NEW;
+PROCEDURE (this: DynamicString) Init*;
 BEGIN
 	this.bufferSize := InitialSize;
 	NEW(this.buffer, this.bufferSize);
 	this.Clear
 END Init;
 
-PROCEDURE (this: DynamicString) AdjustBufferSize(minSize: LONGINT), NEW;
+PROCEDURE (this: DynamicString) AdjustBufferSize(minSize: LONGINT);
 	VAR newBuffer: String;
 BEGIN
 	IF minSize >= this.bufferSize THEN
@@ -72,7 +72,7 @@ BEGIN
 	END
 END AdjustBufferSize;
 
-PROCEDURE (this: DynamicString) Put*(ch: CHAR; at: LONGINT), NEW;
+PROCEDURE (this: DynamicString) Put*(ch: CHAR; at: LONGINT);
 BEGIN
 	IF ch = 0X THEN (* truncate *)
 		IF at < this.length THEN this.buffer[at] := 0X; this.length := at END
@@ -85,7 +85,7 @@ BEGIN
 	END
 END Put;
 
-PROCEDURE (this: DynamicString) Get*(at: LONGINT): CHAR, NEW;
+PROCEDURE (this: DynamicString) Get*(at: LONGINT): CHAR;
 BEGIN
 	IF at >= this.length THEN
 		RETURN 0X
@@ -94,7 +94,7 @@ BEGIN
 	END
 END Get;
 
-PROCEDURE (this: DynamicString) AppendChar*(ch: CHAR), NEW;
+PROCEDURE (this: DynamicString) AppendChar*(ch: CHAR);
 BEGIN
 	IF (ch # 0X) THEN
 		IF (this.length + 1 + 1 >= this.bufferSize) THEN this.AdjustBufferSize(this.length + 1 + 1) END;
@@ -104,7 +104,7 @@ BEGIN
 	END
 END AppendChar;
 
-PROCEDURE (this: DynamicString) Append*(IN str: ARRAY OF CHAR), NEW;
+PROCEDURE (this: DynamicString) Append*(IN str: ARRAY OF CHAR);
 	VAR strLength: LONGINT;
 BEGIN
 	strLength := LEN(str$);
@@ -113,18 +113,18 @@ BEGIN
 	INC(this.length, strLength)
 END Append;
 
-PROCEDURE (this: DynamicString) AppendInt*(x: HUGEINT), NEW;
+PROCEDURE (this: DynamicString) AppendInt*(x: HUGEINT);
 	VAR numStr: ARRAY 24 OF CHAR;
 BEGIN
 	Strings.IntToString(x, numStr); this.Append(numStr)
 END AppendInt;
 
-PROCEDURE (this: DynamicString) AppendLn*(), NEW;
+PROCEDURE (this: DynamicString) AppendLn*();
 BEGIN
 	this.AppendChar(CR)
 END AppendLn;
 
-PROCEDURE (this: DynamicString) Extract*(offset, len: LONGINT): String, NEW;
+PROCEDURE (this: DynamicString) Extract*(offset, len: LONGINT): String;
 	VAR s: String; i: LONGINT;
 BEGIN
 	IF offset < this.length THEN
@@ -140,7 +140,7 @@ BEGIN
 	RETURN s
 END Extract;
 
-PROCEDURE (this: DynamicString) ToString*(): String, NEW;
+PROCEDURE (this: DynamicString) ToString*(): String;
 VAR string: String;
 BEGIN
 	NEW(string, this.length + 1);
@@ -148,17 +148,17 @@ BEGIN
 	RETURN string
 END ToString;
 
-PROCEDURE (this: DynamicString) ToUpper*(), NEW;
+PROCEDURE (this: DynamicString) ToUpper*();
 BEGIN
 	Strings.ToUpper(this.buffer, this.buffer)
 END ToUpper;
 
-PROCEDURE (this: DynamicString) ToLower*(), NEW;
+PROCEDURE (this: DynamicString) ToLower*();
 BEGIN
 	Strings.ToLower(this.buffer, this.buffer)
 END ToLower;
 
-PROCEDURE (this: DynamicString) FromString*(s: String), NEW;
+PROCEDURE (this: DynamicString) FromString*(s: String);
 BEGIN
 	this.length := LEN(s$);
 	NEW(this.buffer, this.length + 1);
@@ -166,7 +166,7 @@ BEGIN
 END FromString;
 
 (** Copy <len> characters starting at <offset> from string <ds> into this dynamic string*)
-PROCEDURE (this: DynamicString) CopyFrom*(ds: DynamicString; offset, len: LONGINT), NEW;
+PROCEDURE (this: DynamicString) CopyFrom*(ds: DynamicString; offset, len: LONGINT);
 	VAR i: LONGINT;
 BEGIN
 	ASSERT((ds # NIL) & (offset >= 0) & (len >= 0));
@@ -184,7 +184,7 @@ BEGIN
 	END
 END CopyFrom;
 
-PROCEDURE (this: DynamicString) EqualsTo*(IN string: ARRAY OF CHAR; ignoreCase: BOOLEAN): BOOLEAN, NEW;
+PROCEDURE (this: DynamicString) EqualsTo*(IN string: ARRAY OF CHAR; ignoreCase: BOOLEAN): BOOLEAN;
 	VAR len: LONGINT; result: BOOLEAN; i: LONGINT;
 BEGIN
 	len := LEN(string$);
@@ -208,7 +208,7 @@ END EqualsTo;
 
 (* JT: this Pool version uses a growing hashtable and an improved hash function *)
 
-PROCEDURE (this: Pool) Clear*, NEW;
+PROCEDURE (this: Pool) Clear*;
 	VAR i: LONGINT; empty: HashTableEntry;
 BEGIN
 	empty.value := NIL; empty.hashcode := 0; empty.next := NIL;
@@ -219,7 +219,7 @@ BEGIN
 END Clear;
 
 (* constructor *)
-PROCEDURE (this: Pool) Init*, NEW;
+PROCEDURE (this: Pool) Init*;
 BEGIN
 	this.threshold := ENTIER(InitialCapacity * LoadFactor);
 	NEW(this.hashtable, InitialCapacity)
@@ -288,7 +288,7 @@ BEGIN
 	END
 END MoveEntries;
 
-PROCEDURE (this: Pool) Grow(), NEW;
+PROCEDURE (this: Pool) Grow();
 	VAR newht: HashTable; i: LONGINT; free: HashTableEntries;
 BEGIN
 	NEW(newht, LEN(this.hashtable) * 2); free := NIL;
@@ -300,7 +300,7 @@ BEGIN
 END Grow;
 
 (** Get string from pool. If the string is not contained in the pool, a copy of it is added to the pool *)
-PROCEDURE (this: Pool) Get*(ds: DynamicString): String, NEW;
+PROCEDURE (this: Pool) Get*(ds: DynamicString): String;
 	VAR string: String; hashcode, entry: LONGINT; free: HashTableEntries;
 BEGIN
 	ASSERT(ds # NIL);
