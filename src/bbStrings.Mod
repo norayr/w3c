@@ -59,6 +59,11 @@ END Replace;
 
 (* string manipulation routines *)
 
+PROCEDURE Upper* (ch: CHAR): CHAR;
+ BEGIN
+  IF ORD(ch) < 256 THEN RETURN toUpper[ORD(ch)] ELSE RETURN ch END
+ END Upper;
+
 PROCEDURE ToUpper* (in: ARRAY OF CHAR; VAR out: ARRAY OF CHAR);
   VAR i, max: LONGINT;
  BEGIN i := 0; max := LEN(out)-1;

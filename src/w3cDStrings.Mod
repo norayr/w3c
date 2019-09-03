@@ -164,7 +164,8 @@ PROCEDURE (this: DynamicString) FromString*(s: String);
 BEGIN
 	this.length := Strings.Length(s^);
 	NEW(this.buffer, this.length + 1);
-	this.buffer^ := s$
+	COPY ("", this.buffer^);
+  Strings.Append(s^, this.buffer^);
 END FromString;
 
 (** Copy <len> characters starting at <offset> from string <ds> into this dynamic string*)
@@ -189,13 +190,13 @@ END CopyFrom;
 PROCEDURE (this: DynamicString) EqualsTo*(VAR string: ARRAY OF CHAR; ignoreCase: BOOLEAN): BOOLEAN;
 	VAR len: LONGINT; result: BOOLEAN; i: LONGINT;
 BEGIN
-	len := LEN(string$);
+	len := Strings.Length(string);
 	result := (len = this.length);
 	IF result THEN
 		i := 0;
 		IF ignoreCase THEN
 			WHILE result & (i < this.length) DO
-				result := Strings.Upper(string[i]) = Strings.Upper(this.buffer[i]);
+				result := bbStrings.Upper(string[i]) = bbStrings.Upper(this.buffer[i]);
 				INC(i)
 			END
 		ELSE
@@ -214,7 +215,7 @@ PROCEDURE (this: Pool) Clear*;
 	VAR i: LONGINT; empty: HashTableEntry;
 BEGIN
 	empty.value := NIL; empty.hashcode := 0; empty.next := NIL;
-	FOR i := 0 TO LEN(this.hashtable) - 1 DO
+	FOR i := 0 TO LEN(this.hashtable^) - 1 DO
 		this.hashtable[i] := empty
 	END;
 	this.nofEntries := 0
@@ -280,7 +281,7 @@ PROCEDURE MoveEntries(VAR entry: HashTableEntry; newht: HashTable; VAR free: Has
 	VAR len: LONGINT; e, n: HashTableEntries;
 BEGIN
 	IF entry.value # NIL THEN
-		len := LEN(newht);
+		len := LEN(newht^);
 		Add(entry.value, entry.hashcode, newht[entry.hashcode MOD len], free);
 		e := entry.next;
 		WHILE e # NIL DO
@@ -293,12 +294,12 @@ END MoveEntries;
 PROCEDURE (this: Pool) Grow();
 	VAR newht: HashTable; i: LONGINT; free: HashTableEntries;
 BEGIN
-	NEW(newht, LEN(this.hashtable) * 2); free := NIL;
-	FOR i := 0 TO LEN(this.hashtable) - 1 DO
+	NEW(newht, LEN(this.hashtable^) * 2); free := NIL;
+	FOR i := 0 TO LEN(this.hashtable^) - 1 DO
 		MoveEntries(this.hashtable[i], newht, free)
 	END ;
 	this.hashtable := newht;
-	this.threshold := SHORT(ENTIER(LEN(newht) * LoadFactor))
+	this.threshold := SHORT(ENTIER(LEN(newht^) * LoadFactor))
 END Grow;
 
 (** Get string from pool. If the string is not contained in the pool, a copy of it is added to the pool *)
@@ -306,16 +307,16 @@ PROCEDURE (this: Pool) Get*(ds: DynamicString): String;
 	VAR string: String; hashcode, entry: LONGINT; free: HashTableEntries;
 BEGIN
 	ASSERT(ds # NIL);
-	hashcode := Hash(ds.buffer);
-	entry := hashcode MOD LEN(this.hashtable);
-	string := Find(ds.buffer, hashcode, this.hashtable[entry]);
+	hashcode := Hash(ds.buffer^);
+	entry := hashcode MOD LEN(this.hashtable^);
+	string := Find(ds.buffer^, hashcode, this.hashtable[entry]);
 	 
 	IF string = NIL THEN (* Add *)
 		IF this.nofEntries >= this.threshold THEN
 			this.Grow();
-			entry := hashcode MOD LEN(this.hashtable)
+			entry := hashcode MOD LEN(this.hashtable^)
 		END;
-		NEW(string, ds.length + 1); string^ := ds.buffer$; free := NIL;
+		NEW(string, ds.length + 1); COPY("", string^); Strings.Append(ds.buffer^, string^); free := NIL;
 		Add(string, hashcode, this.hashtable[entry], free);
 		INC(this.nofEntries)
 	END;
