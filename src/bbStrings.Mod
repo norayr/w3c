@@ -89,4 +89,20 @@ PROCEDURE ToUpper* (in: ARRAY OF CHAR; VAR out: ARRAY OF CHAR);
   out[i] := 0X
  END ToLower;
 
+ PROCEDURE Find* (VAR s: ARRAY OF CHAR; VAR pat: ARRAY OF CHAR; start: LONGINT; VAR pos: LONGINT);
+    VAR j: LONGINT;
+ BEGIN
+    ASSERT(start >= 0, 20);
+    IF (start = 0) OR (start <= Strings.Length(s) - Strings.Length(pat)) THEN
+      (* start = 0 is optimization: need not call Len *)
+      pos := start;
+      WHILE s[pos] # 0X DO j := 0;
+        WHILE (s[pos+j] = pat[j]) & (pat[j] # 0X) DO INC(j) END;
+        IF pat[j] = 0X THEN RETURN END;
+        INC(pos)
+      END
+    END;
+    pos := -1       (* pattern not found *)
+ END Find;
+
 END bbStrings.

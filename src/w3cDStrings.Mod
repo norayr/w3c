@@ -328,7 +328,7 @@ END Get;
 PROCEDURE NewString* (VAR str: ARRAY OF CHAR): String;
 	VAR s: String;
 BEGIN
-	NEW(s, LEN(str$) + 1); s^ := str$; 
+	NEW(s, Strings.Length(str) + 1); COPY("", s^); Strings.Append(str, s^); 
 	RETURN s
 END NewString;
 
@@ -353,8 +353,8 @@ PROCEDURE Count* (VAR string, pat: ARRAY OF CHAR): LONGINT;
 	VAR count, patLen, pos: LONGINT;
 BEGIN
 	ASSERT(pat # "", 20);
-	count := 0; patLen := LEN(pat$); Strings.Find (string, pat, 0, pos);
-	WHILE pos # -1 DO INC(count); Strings.Find(string, pat, pos + patLen, pos) END;
+	count := 0; patLen := Strings.Length(pat); bbStrings.Find (string, pat, 0, pos);
+	WHILE pos # -1 DO INC(count); bbStrings.Find(string, pat, pos + patLen, pos) END;
 	RETURN count
 END Count;
 
@@ -376,11 +376,11 @@ PROCEDURE Split*(VAR string, separator: ARRAY OF CHAR): StringArray;
 
 BEGIN
 	IF separator # "" THEN
-		count := Count (string, separator); sepLen := LEN(separator$);
+		count := Count (string, separator); sepLen := Strings.Length(separator);
 		NEW (result, count + 1); pos := 0;
 		FOR index := 0 TO count DO
-			Strings.Find (string, separator, pos, next);
-			IF next = -1 THEN next := LEN(string$) END;
+			bbStrings.Find (string, separator, pos, next);
+			IF next = -1 THEN next := Strings.Length(string) END;
 			NEW(result[index], next - pos + 1);
 			Copy(string, pos, next - pos, result[index]^);
 			pos := next + sepLen;
