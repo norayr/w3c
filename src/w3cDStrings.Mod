@@ -5,6 +5,7 @@ MODULE w3cDStrings;
 With statistics and pool dump: No
 
 2017-01-27, J. Templ, adapted for BlackBox from ETH Oberon A2; original author Stefan Walthert 
+2019-09-04, N. Chilingarian, adapted for voc from the BB version
 *)
 
 IMPORT Strings, bbStrings;
