@@ -1,4 +1,4 @@
-MODULE W3cStreams;
+MODULE w3cStreams;
 
 (* This module provides character stream readers and writers as abstractions for storage media and encodings. *)
 
@@ -8,44 +8,44 @@ CONST
 	CR = 0DX; LF = 0AX;
 	
 TYPE
-	Reader* = POINTER TO ABSTRACT RECORD
+	Reader* = POINTER TO RECORD
 		ok*: BOOLEAN; (* sticky if FALSE; reading beyond end-of-stream sets ok to FALSE but GetError() returns NIL *)
 	END;
 
-	Writer* = POINTER TO ABSTRACT RECORD
+	Writer* = POINTER TO RECORD
 		ok*: BOOLEAN;
 	END;
 
 	String* = POINTER TO ARRAY OF CHAR;
 
-	Utf8FileReader* = POINTER TO EXTENSIBLE RECORD (Reader)
+	Utf8FileReader* = POINTER TO RECORD (Reader)
 		rd: Files.Reader;
 		errMsg: String;
 	END;
 
-	Utf8FileWriter* = POINTER TO EXTENSIBLE RECORD (Writer)
+	Utf8FileWriter* = POINTER TO RECORD (Writer)
 		wr: Files.Writer;
 		errMsg: String;
 	END;
 
-	StringReader* = POINTER TO EXTENSIBLE RECORD (Reader)
+	StringReader* = POINTER TO RECORD (Reader)
 		source: String;
 		pos: LONGINT;
 	END;
 
-	StringWriter* = POINTER TO EXTENSIBLE RECORD (Writer)
+	StringWriter* = POINTER TO RECORD (Writer)
 		buf-: String;
 		len-: LONGINT;
 	END;
 
 	SString* = POINTER TO ARRAY OF SHORTCHAR;
 
-	SStringReader* = POINTER TO EXTENSIBLE RECORD (Reader)
+	SStringReader* = POINTER TO RECORD (Reader)
 		source: SString;
 		pos: LONGINT;
 	END;
 
-	SStringWriter* = POINTER TO EXTENSIBLE RECORD (Writer)
+	SStringWriter* = POINTER TO RECORD (Writer)
 		buf-: SString;
 		len-: LONGINT;
 	END;
@@ -56,7 +56,7 @@ TYPE
 (** provides a clear text message if an error was detected; otherwise returns NIL; 
 	end-of-stream is not considered an error.
 *)
-PROCEDURE (this: Reader) GetError* (): String, NEW, EXTENSIBLE;
+PROCEDURE (this: Reader) GetError* (): String;
 BEGIN
 	RETURN NIL
 END GetError;
@@ -65,28 +65,28 @@ END GetError;
 	at end-of-stream this.ok is also set to FALSE and 0X is returned.
 	GetError provides a clear text message if an error was detected.
 *)
-PROCEDURE (this: Reader) Get* (): CHAR, NEW, ABSTRACT;
+PROCEDURE (this: Reader) Get* (): CHAR, ABSTRACT;
 
 
 (* ------ Writer ------ *)
 
 (** provides a clear text message if an error was detected; otherwise returns NIL.
 *)
-PROCEDURE (this: Writer) GetError* (): String, NEW, EXTENSIBLE;
+PROCEDURE (this: Writer) GetError* (): String;
 BEGIN
 	RETURN NIL
 END GetError;
 
-PROCEDURE (this: Writer) Char* (ch: CHAR), NEW, ABSTRACT;
+PROCEDURE (this: Writer) Char* (ch: CHAR), ABSTRACT;
 
-PROCEDURE (this: Writer) String* (VAR str: ARRAY OF CHAR), NEW, EXTENSIBLE;
+PROCEDURE (this: Writer) String* (VAR str: ARRAY OF CHAR);
 	VAR i: LONGINT; ch: CHAR;
 BEGIN
 	i := 0; ch := str[0];
 	WHILE ch # 0X DO this.Char(ch); INC(i); ch := str[i] END
 END String;
 
-PROCEDURE (this: Writer) Ln*, NEW, EXTENSIBLE;
+PROCEDURE (this: Writer) Ln*;
 BEGIN
 	this.Char(CR); this.Char(LF)
 END Ln;
@@ -94,12 +94,12 @@ END Ln;
 
 (* ------ Utf8FileReader ------ *)
 
-PROCEDURE (this: Utf8FileReader) Init* (rd: Files.Reader), NEW, EXTENSIBLE;
+PROCEDURE (this: Utf8FileReader) Init* (rd: Files.Reader);
 BEGIN
 	this.rd := rd; this.ok := TRUE; this.errMsg := NIL
 END Init;
 
-PROCEDURE (this: Utf8FileReader) Get* (): CHAR, EXTENSIBLE;
+PROCEDURE (this: Utf8FileReader) Get* (): CHAR;
 	VAR b: SHORTINT; ch: CHAR; val, i: LONGINT;
 	
 	PROCEDURE FormatError;
@@ -144,7 +144,7 @@ BEGIN
 	END
 END Get;
 
-PROCEDURE (this: Utf8FileReader) GetError* (): String, EXTENSIBLE;
+PROCEDURE (this: Utf8FileReader) GetError* (): String;
 BEGIN
 	RETURN this.errMsg
 END GetError;
@@ -152,12 +152,12 @@ END GetError;
 
 (* ------ Utf8FileWriter ------ *)
 
-PROCEDURE (this: Utf8FileWriter) Init* (wr: Files.Writer), NEW, EXTENSIBLE;
+PROCEDURE (this: Utf8FileWriter) Init* (wr: Files.Writer);
 BEGIN
 	this.wr := wr; this.ok := TRUE; this.errMsg := NIL
 END Init;
 
-PROCEDURE (this: Utf8FileWriter) Char* (ch: CHAR), EXTENSIBLE;
+PROCEDURE (this: Utf8FileWriter) Char* (ch: CHAR);
 BEGIN
 	IF ORD(ch) < 128 THEN
 		this.wr.WriteByte(SHORT(SHORT(ORD(ch))))
@@ -174,12 +174,12 @@ END Char;
 
 (* ------ StringReader ------ *)
 
-PROCEDURE (this: StringReader) Init* (source: String; pos: LONGINT), NEW, EXTENSIBLE;
+PROCEDURE (this: StringReader) Init* (source: String; pos: LONGINT);
 BEGIN
 	this.source := source; this.pos := pos; this.ok := TRUE
 END Init;
 
-PROCEDURE (this: StringReader) Get* (): CHAR, EXTENSIBLE;
+PROCEDURE (this: StringReader) Get* (): CHAR;
 	VAR ch: CHAR;
 BEGIN
 	ch := this.source[this.pos];
@@ -192,13 +192,13 @@ END Get;
 
 (* ------ StringWriter ------ *)
 
-PROCEDURE (this: StringWriter) Init* (buf: String; initialCapacity: LONGINT), NEW, EXTENSIBLE;
+PROCEDURE (this: StringWriter) Init* (buf: String; initialCapacity: LONGINT);
 BEGIN
 	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, MAX(initialCapacity, 62)) END;
 	this.len := 0; this.buf[0] := 0X; this.ok := TRUE
 END Init;
 
-PROCEDURE (this: StringWriter) Char* (ch: CHAR), EXTENSIBLE;
+PROCEDURE (this: StringWriter) Char* (ch: CHAR);
 	VAR newBuf: String;
 BEGIN
 	IF this.len + 2 >= LEN(this.buf) THEN
@@ -209,7 +209,7 @@ BEGIN
 	this.buf[this.len] := 0X;
 END Char;
 
-PROCEDURE (this: StringWriter) Ln*, EXTENSIBLE;
+PROCEDURE (this: StringWriter) Ln*;
 BEGIN
 	this.Char(CR)
 END Ln;
@@ -217,12 +217,12 @@ END Ln;
 
 (* ------ SStringReader ------ *)
 
-PROCEDURE (this: SStringReader) Init* (source: SString; pos: LONGINT), NEW, EXTENSIBLE;
+PROCEDURE (this: SStringReader) Init* (source: SString; pos: LONGINT);
 BEGIN
 	this.source := source; this.pos := pos; this.ok := TRUE
 END Init;
 
-PROCEDURE (this: SStringReader) Get* (): CHAR, EXTENSIBLE;
+PROCEDURE (this: SStringReader) Get* (): CHAR;
 	VAR ch: CHAR;
 BEGIN
 	ch := this.source[this.pos];
@@ -235,13 +235,13 @@ END Get;
 
 (* ------ SStringWriter ------ *)
 
-PROCEDURE (this: SStringWriter) Init* (buf: SString; initialCapacity: LONGINT), NEW, EXTENSIBLE;
+PROCEDURE (this: SStringWriter) Init* (buf: SString; initialCapacity: LONGINT);
 BEGIN
 	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, MAX(initialCapacity, 124)) END;
 	this.len := 0; this.buf[0] := 0X; this.ok := TRUE
 END Init;
 
-PROCEDURE (this: SStringWriter) Char* (ch: CHAR), EXTENSIBLE;
+PROCEDURE (this: SStringWriter) Char* (ch: CHAR);
 	VAR newBuf: SString;
 BEGIN
 	IF this.len + 2 >= LEN(this.buf) THEN
@@ -253,7 +253,7 @@ BEGIN
 	this.buf[this.len] := 0X;
 END Char;
 
-PROCEDURE (this: SStringWriter) Ln*, EXTENSIBLE;
+PROCEDURE (this: SStringWriter) Ln*;
 BEGIN
 	this.Char(CR)
 END Ln;
@@ -297,4 +297,4 @@ BEGIN
 	NEW(w); w.Init(buf, initialCapacity); RETURN w
 END NewSStringWriter;
 
-END W3cStreams.
+END w3cStreams.
