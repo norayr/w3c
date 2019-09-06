@@ -8,44 +8,52 @@ CONST
 	CR = 0DX; LF = 0AX;
 	
 TYPE
-	Reader* = POINTER TO RECORD
+	Reader* = POINTER TO ReaderDesc;
+  ReaderDesc* = RECORD
 		ok*: BOOLEAN; (* sticky if FALSE; reading beyond end-of-stream sets ok to FALSE but GetError() returns NIL *)
 	END;
 
-	Writer* = POINTER TO RECORD
+	Writer* = POINTER TO WriterDesc;
+  WriterDesc* = RECORD
 		ok*: BOOLEAN;
 	END;
 
 	String* = POINTER TO ARRAY OF CHAR;
 
-	Utf8FileReader* = POINTER TO RECORD (Reader)
+	Utf8FileReader* = POINTER TO Utf8FileReaderDesc;
+  Utf8FileReaderDesc* = RECORD(ReaderDesc)
 		rd: Files.Reader;
 		errMsg: String;
 	END;
 
-	Utf8FileWriter* = POINTER TO RECORD (Writer)
+	Utf8FileWriter* = POINTER TO Utf8FileWriterDesc;
+  Utf8FileWriterDesc* = RECORD (WriterDesc)
 		wr: Files.Writer;
 		errMsg: String;
 	END;
 
-	StringReader* = POINTER TO RECORD (Reader)
+	StringReader* = POINTER TO StringReaderDesc;
+  StringReaderDesc* = RECORD (ReaderDesc)
 		source: String;
 		pos: LONGINT;
 	END;
 
-	StringWriter* = POINTER TO RECORD (Writer)
+	StringWriter* = POINTER TO StringWriterDesc;
+  StringWriterDesc* = RECORD (WriterDesc)
 		buf-: String;
 		len-: LONGINT;
 	END;
 
 	SString* = POINTER TO ARRAY OF SHORTCHAR;
 
-	SStringReader* = POINTER TO RECORD (Reader)
+	SStringReader* = POINTER TO SStringReaderDesc;
+  SStringReaderDesc* = RECORD (ReaderDesc)
 		source: SString;
 		pos: LONGINT;
 	END;
 
-	SStringWriter* = POINTER TO RECORD (Writer)
+	SStringWriter* = POINTER TO SStringWriterDesc;
+  SStringWriterDesc* = RECORD (WriterDesc)
 		buf-: SString;
 		len-: LONGINT;
 	END;
