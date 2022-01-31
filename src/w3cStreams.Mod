@@ -22,13 +22,13 @@ TYPE
 
 	Utf8FileReader* = POINTER TO Utf8FileReaderDesc;
   Utf8FileReaderDesc* = RECORD(ReaderDesc)
-		rd: Files.Reader;
+		rd: Files.Rider;
 		errMsg: String;
 	END;
 
 	Utf8FileWriter* = POINTER TO Utf8FileWriterDesc;
   Utf8FileWriterDesc* = RECORD (WriterDesc)
-		wr: Files.Writer;
+		wr: Files.Rider;
 		errMsg: String;
 	END;
 
@@ -44,7 +44,7 @@ TYPE
 		len-: LONGINT;
 	END;
 
-	SString* = POINTER TO ARRAY OF SHORTCHAR;
+	SString* = POINTER TO ARRAY OF CHAR;
 
 	SStringReader* = POINTER TO SStringReaderDesc;
   SStringReaderDesc* = RECORD (ReaderDesc)
@@ -73,8 +73,10 @@ END GetError;
 	at end-of-stream this.ok is also set to FALSE and 0X is returned.
 	GetError provides a clear text message if an error was detected.
 *)
-PROCEDURE (this: Reader) Get* (): CHAR, ABSTRACT;
+PROCEDURE (this: Reader) Get* (): CHAR; (* abstract *)
+BEGIN
 
+END Get;
 
 (* ------ Writer ------ *)
 
@@ -85,7 +87,10 @@ BEGIN
 	RETURN NIL
 END GetError;
 
-PROCEDURE (this: Writer) Char* (ch: CHAR), ABSTRACT;
+PROCEDURE (this: Writer) Char* (ch: CHAR); (* abstract *)
+BEGIN
+
+END Char;
 
 PROCEDURE (this: Writer) String* (VAR str: ARRAY OF CHAR);
 	VAR i: LONGINT; ch: CHAR;
@@ -102,7 +107,7 @@ END Ln;
 
 (* ------ Utf8FileReader ------ *)
 
-PROCEDURE (this: Utf8FileReader) Init* (rd: Files.Reader);
+PROCEDURE (this: Utf8FileReader) Init* (rd: Files.Rider);
 BEGIN
 	this.rd := rd; this.ok := TRUE; this.errMsg := NIL
 END Init;
@@ -111,13 +116,17 @@ PROCEDURE (this: Utf8FileReader) Get* (): CHAR;
 	VAR b: SHORTINT; ch: CHAR; val, i: LONGINT;
 	
 	PROCEDURE FormatError;
-		CONST formatError = "UTF-8 format error";
-	BEGIN
-		this.ok := FALSE; NEW(this.errMsg, LEN(formatError) + 1); this.errMsg^:= formatError
+		VAR formatError: ARRAY 18 OF CHAR;
+    BEGIN
+	COPY("UTF-8 format error", formatError);
+	this.ok := FALSE; NEW(this.errMsg, LEN(formatError) + 1); 
+  COPY(formatError, this.errMsg^)
 	END FormatError;
 
 BEGIN
-	this.rd.ReadByte(b); ch := CHR(b MOD 256);
+	(*this.rd.ReadByte(b);*)
+  Files.Read(this.rd, b);
+  ch := CHR(b MOD 256);
 	IF this.rd.eof THEN
 		this.ok := FALSE;
 		RETURN 0X
@@ -127,25 +136,34 @@ BEGIN
 		IF ch < 0E0X THEN (* 2-byte code *)
 			val := ORD(ch) - 192;
 			IF val < 0 THEN FormatError; RETURN 0X END ;
-			this.rd.ReadByte(b); ch := CHR(b MOD 256);
+			(*this.rd.ReadByte(b);*)
+      Files.Read(this.rd, b);
+      ch := CHR(b MOD 256);
 			val := val * 64 + ORD(ch) - 128;
 			IF (ch < 80X) OR (ch >= 0E0X) THEN FormatError; RETURN 0X END ;
 			RETURN CHR(val)
 		ELSIF ch < 0F0X THEN (* 3-byte code *)
 			val := ORD(ch) - 224;
-			this.rd.ReadByte(b); ch := CHR(b MOD 256);
+			(*this.rd.ReadByte(b);*)
+      Files.Read(this.rd, b);
+      ch := CHR(b MOD 256);
 			val := val * 64 + ORD(ch) - 128;
 			IF (ch < 80X) OR (ch >= 0E0X) THEN FormatError; RETURN 0X END ;
-			this.rd.ReadByte(b); ch := CHR(b MOD 256);
+			(*this.rd.ReadByte(b);*)
+      Files.Read(this.rd, b);
+      ch := CHR(b MOD 256);
 			val := val * 64 + ORD(ch) - 128;
 			IF (ch < 80X) OR (ch >= 0E0X) THEN FormatError; RETURN 0X END ;
 			RETURN CHR(val)
 		ELSIF ch < 0F8X THEN (* 4-byte code; cannot be represented as CHAR *)
 			FOR i := 0 TO 2 DO
-				this.rd.ReadByte(b); ch := CHR(b MOD 256);
+				(*this.rd.ReadByte(b);*)
+        Files.Read(this.rd, b);
+        ch := CHR(b MOD 256);
 				IF (ch < 80X) OR (ch >= 0E0X) THEN FormatError; RETURN 0X END ;
 			END;
-			RETURN 0313X (* place holder 'geta', shown as white square*)
+			(*RETURN 0313X*) (* place holder 'geta', shown as white square*)
+      RETURN 07FX (* chosen this instead, to fit in CHAR  *)
 		ELSE
 			FormatError; RETURN 0X
 		END
@@ -160,7 +178,7 @@ END GetError;
 
 (* ------ Utf8FileWriter ------ *)
 
-PROCEDURE (this: Utf8FileWriter) Init* (wr: Files.Writer);
+PROCEDURE (this: Utf8FileWriter) Init* (wr: Files.Rider);
 BEGIN
 	this.wr := wr; this.ok := TRUE; this.errMsg := NIL
 END Init;
@@ -168,14 +186,20 @@ END Init;
 PROCEDURE (this: Utf8FileWriter) Char* (ch: CHAR);
 BEGIN
 	IF ORD(ch) < 128 THEN
-		this.wr.WriteByte(SHORT(SHORT(ORD(ch))))
+		(*this.wr.WriteByte(SHORT(SHORT(ORD(ch))))*)
+		Files.Write(this.wr, SHORT(SHORT(ORD(ch))))
 	ELSIF ORD(ch) < 2048 THEN
-		this.wr.WriteByte(SHORT(SHORT(ORD(ch) DIV 64 + 192)));
-		this.wr.WriteByte(SHORT(SHORT(ORD(ch) MOD 64 + 128)))
+		(*this.wr.WriteByte(SHORT(SHORT(ORD(ch) DIV 64 + 192)));*)
+		Files.Write(this.wr, SHORT(SHORT(ORD(ch) DIV 64 + 192)));
+		(*this.wr.WriteByte(SHORT(SHORT(ORD(ch) MOD 64 + 128)))*)
+		Files.Write(this.wr, SHORT(SHORT(ORD(ch) MOD 64 + 128)))
 	ELSE
-		this.wr.WriteByte(SHORT(SHORT(ORD(ch) DIV 4096 + 224)));
-		this.wr.WriteByte(SHORT(SHORT(ORD(ch) DIV 64 MOD 64 + 128)));
-		this.wr.WriteByte(SHORT(SHORT(ORD(ch) MOD 64 + 128)));
+		(*this.wr.WriteByte(SHORT(SHORT(ORD(ch) DIV 4096 + 224)));*)
+		Files.Write(this.wr, SHORT(SHORT(ORD(ch) DIV 4096 + 224)));
+		(*this.wr.WriteByte(SHORT(SHORT(ORD(ch) DIV 64 MOD 64 + 128)));*)
+		Files.Write(this.wr, SHORT(SHORT(ORD(ch) DIV 64 MOD 64 + 128)));
+		(*this.wr.WriteByte(SHORT(SHORT(ORD(ch) MOD 64 + 128)));*)
+		Files.Write(this.wr, SHORT(SHORT(ORD(ch) MOD 64 + 128)));
 	END
 END Char;
 
@@ -197,20 +221,27 @@ BEGIN
 	RETURN ch
 END Get;
 
+PROCEDURE max(a, b: LONGINT): LONGINT;
+BEGIN
+  IF a >= b THEN RETURN a ELSE RETURN b END
+END max;
 
 (* ------ StringWriter ------ *)
 
 PROCEDURE (this: StringWriter) Init* (buf: String; initialCapacity: LONGINT);
 BEGIN
-	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, MAX(initialCapacity, 62)) END;
+	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, max(initialCapacity, 62)) END;
 	this.len := 0; this.buf[0] := 0X; this.ok := TRUE
 END Init;
 
 PROCEDURE (this: StringWriter) Char* (ch: CHAR);
 	VAR newBuf: String;
 BEGIN
-	IF this.len + 2 >= LEN(this.buf) THEN
-		NEW(newBuf, LEN(this.buf) * 2); newBuf^ := this.buf^$; this.buf := newBuf
+	IF this.len + 2 >= LEN(this.buf^) THEN
+		NEW(newBuf, LEN(this.buf^) * 2); 
+    (*newBuf^ := this.buf^$;*)
+    COPY(this.buf^, newBuf^);
+    this.buf := newBuf
 	END;
 	this.buf[this.len] := ch;
 	INC(this.len);
@@ -245,18 +276,21 @@ END Get;
 
 PROCEDURE (this: SStringWriter) Init* (buf: SString; initialCapacity: LONGINT);
 BEGIN
-	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, MAX(initialCapacity, 124)) END;
+	IF buf # NIL THEN this.buf := buf ELSE NEW(this.buf, max(initialCapacity, 124)) END;
 	this.len := 0; this.buf[0] := 0X; this.ok := TRUE
 END Init;
 
 PROCEDURE (this: SStringWriter) Char* (ch: CHAR);
 	VAR newBuf: SString;
 BEGIN
-	IF this.len + 2 >= LEN(this.buf) THEN
-		NEW(newBuf, LEN(this.buf) * 2); newBuf^ := this.buf^$; this.buf := newBuf
+	IF this.len + 2 >= LEN(this.buf^) THEN
+		NEW(newBuf, LEN(this.buf^) * 2);
+    (*newBuf^ := this.buf^$;*)
+    COPY(this.buf^, newBuf^);
+    this.buf := newBuf
 	END;
 	IF ch > 0FFX THEN ch := "?" END;
-	this.buf[this.len] := SHORT(ch);
+	this.buf[this.len] := ch;
 	INC(this.len);
 	this.buf[this.len] := 0X;
 END Char;
@@ -269,13 +303,13 @@ END Ln;
 
 (* ------ constructor functions ------ *)
 
-PROCEDURE NewUtf8FileReader* (rd: Files.Reader): Utf8FileReader;
+PROCEDURE NewUtf8FileReader* (rd: Files.Rider): Utf8FileReader;
 	VAR r: Utf8FileReader;
 BEGIN
 	NEW(r); r.Init(rd); RETURN r
 END NewUtf8FileReader;
 
-PROCEDURE NewUtf8FileWriter* (wr: Files.Writer): Utf8FileWriter;
+PROCEDURE NewUtf8FileWriter* (wr: Files.Rider): Utf8FileWriter;
 	VAR w: Utf8FileWriter;
 BEGIN
 	NEW(w); w.Init(wr); RETURN w
