@@ -1,80 +1,99 @@
-MODULE W3cObjects;
-
+MODULE w3cObjects;
+IMPORT SYSTEM, Strings;
 (* This module provides a simple collection framework for Component Pascal.
 
 Original author: swalthert
-Ported from A2 Oberon build 7131 to BlackBox Component Pascal, J. Templ, 2017-05-10 *)
+Ported from A2 Oberon build 7131 to BlackBox Component Pascal, J. Templ, 2017-05-10
+
+ported to vishap oberon compiler by noch; 2022-02-01 
+
+*)
 
 TYPE
+  ANYPTR = SYSTEM.PTR;
+
 	String = POINTER TO ARRAY OF CHAR;
-	
-	Collection* = POINTER TO ABSTRACT RECORD END;
+	StringArray = POINTER TO ARRAY OF String;
+
+	Collection* = POINTER TO CollectionDesc;
+  CollectionDesc = RECORD END;
 
 	ListElem = POINTER TO RECORD
 		elem: ANYPTR;
 		next: ListElem;
 	END;
 
-	List* = POINTER TO LIMITED RECORD (Collection)
+	List* = POINTER TO ListDesc;
+  ListDesc = RECORD (CollectionDesc)
 		first, last: ListElem;
 		nofElems: LONGINT;
 	END;
 	
 	PTRArray* = POINTER TO ARRAY OF ANYPTR;
 	
-	ArrayCollection* = POINTER TO LIMITED RECORD (Collection)
+	ArrayCollection* = POINTER TO ArrayCollectionDesc;
+  ArrayCollectionDesc = RECORD (CollectionDesc)
 		elems: PTRArray;
 		nofElems: LONGINT;
 	END;
 
-	Enumerator* = POINTER TO ABSTRACT RECORD END;
+	Enumerator* = POINTER TO EnumeratorDesc;
+  EnumeratorDesc = RECORD END;
 
-	DictEnumerator* = POINTER TO ABSTRACT RECORD (Enumerator) END;
+	DictEnumerator* = POINTER TO DictEnumeratorDesc;
+  DictEnumeratorDesc = RECORD (EnumeratorDesc) END;
 
-	ListEnumerator* = POINTER TO LIMITED RECORD (Enumerator)
+	ListEnumerator* = POINTER TO ListEnumeratorDesc;
+  ListEnumeratorDesc =  RECORD (EnumeratorDesc)
 		coll: List;
 		current: ListElem;
 	END;
 
-	ArrayEnumerator* = POINTER TO LIMITED RECORD (Enumerator)
+	ArrayEnumerator* = POINTER TO ArrayEnumeratorDesc;
+  ArrayEnumeratorDesc = RECORD (EnumeratorDesc)
 		array: PTRArray;
 		current: LONGINT;
 	END;
 
-	ArrayDictEnumerator* = POINTER TO LIMITED RECORD (DictEnumerator)
+	ArrayDictEnumerator* = POINTER TO ArrayDictEnumeratorDesc;
+  ArrayDictEnumeratorDesc = RECORD (DictEnumeratorDesc)
 		keys: StringArray;
 		elems: PTRArray;
 		current: LONGINT;
 	END;
 
-	Dictionary* = POINTER TO ABSTRACT RECORD END;
+	Dictionary* = POINTER TO DictionaryDesc;
+  DictionaryDesc = RECORD END;
 	
-	StringArray = POINTER TO ARRAY OF String;
-
-	ArrayDict* = POINTER TO LIMITED RECORD (Dictionary)
+	ArrayDict* = POINTER TO ArrayDictDesc;
+  ArrayDictDesc = RECORD (DictionaryDesc)
 		nofElems: LONGINT;
 		keys: StringArray;
 		elems: PTRArray;
 	END;
 
-PROCEDURE^ (this: ListEnumerator) Init*(list: List), NEW;
-PROCEDURE^ (this: ArrayEnumerator) Init*(array: PTRArray), NEW;
+
+PROCEDURE^ (this: ListEnumerator) Init*(list: List)(*, NEW*);
+PROCEDURE^ (this: ArrayEnumerator) Init*(array: PTRArray)(*, NEW*);
 
 
 (* ------ Collection ------ *)
 
-PROCEDURE (this: Collection) GetNumberOfElements*(): LONGINT, NEW, ABSTRACT;
+PROCEDURE (this: Collection) GetNumberOfElements*(): LONGINT(*, NEW, ABSTRACT*);
+BEGIN END GetNumberOfElements;
 
-PROCEDURE (this: Collection) GetEnumerator*(): Enumerator, NEW, ABSTRACT;
+PROCEDURE (this: Collection) GetEnumerator*(): Enumerator(*, NEW, ABSTRACT*);
+BEGIN END GetEnumerator;
 
-PROCEDURE (this: Collection) Add*(p: ANYPTR), NEW, ABSTRACT;
+PROCEDURE (this: Collection) Add*(p: ANYPTR)(*, NEW, ABSTRACT*);
+BEGIN END Add;
 
-PROCEDURE (this: Collection) Remove*(p: ANYPTR), NEW, ABSTRACT;
-
+PROCEDURE (this: Collection) Remove*(p: ANYPTR)(*, NEW, ABSTRACT*);
+BEGIN END Remove;
 
 (* ------ ListElem ------ *)
 
-PROCEDURE (this: ListElem) Init(elem: ANYPTR), NEW;
+PROCEDURE (this: ListElem) Init(elem: ANYPTR)(*, NEW*);
 BEGIN
 	this.elem := elem;
 	this.next := NIL;
@@ -83,7 +102,7 @@ END Init;
 
 (* ------ List ------ *)
 
-PROCEDURE (this: List) Init*, NEW;
+PROCEDURE (this: List) Init*(*, NEW*);
 BEGIN
 	this.nofElems := 0
 END Init;
@@ -137,7 +156,7 @@ END Remove;
 
 (* ------ ArrayCollection ------ *)
 
-PROCEDURE (this: ArrayCollection) Init*, NEW;
+PROCEDURE (this: ArrayCollection) Init*(*, NEW*);
 BEGIN
 	this.nofElems := 0;
 	NEW(this.elems, 1);
@@ -155,11 +174,11 @@ BEGIN
 	RETURN ace
 END GetEnumerator;
 
-PROCEDURE (this: ArrayCollection) Grow, NEW;
+PROCEDURE (this: ArrayCollection) Grow(*, NEW*);
 	VAR i: LONGINT; oldElems: PTRArray;
 BEGIN
 	oldElems := this.elems;
-	NEW(this.elems, 2 * LEN(this.elems));
+	NEW(this.elems, 2 * LEN(this.elems^));
 	FOR i := 0 TO this.nofElems - 1 DO
 		this.elems[i] := oldElems[i]
 	END
@@ -168,7 +187,7 @@ END Grow;
 PROCEDURE (this: ArrayCollection) Add*(p: ANYPTR);
 BEGIN
 	IF p # NIL THEN
-		IF this.nofElems = LEN(this.elems) THEN this.Grow() END;
+		IF this.nofElems = LEN(this.elems^) THEN this.Grow() END;
 		this.elems[this.nofElems] := p;
 		INC(this.nofElems)
 	END
@@ -189,14 +208,14 @@ BEGIN
 	END
 END Remove;
 
-PROCEDURE (this: ArrayCollection) GetElement*(i: LONGINT): ANYPTR, NEW;
+PROCEDURE (this: ArrayCollection) GetElement*(i: LONGINT): ANYPTR(*, NEW*);
 BEGIN
 	IF (0 <= i) & (i < this.nofElems) THEN RETURN this.elems[i]
 	ELSE RETURN NIL
 	END
 END GetElement;
 
-PROCEDURE (this: ArrayCollection) Invert(ptr1, ptr2: ANYPTR): BOOLEAN, NEW;
+PROCEDURE (this: ArrayCollection) Invert(ptr1, ptr2: ANYPTR): BOOLEAN(*, NEW*);
 	VAR pos1, pos2, i: LONGINT; ptr: ANYPTR;
 BEGIN
 	i := 0; pos1 := -1; pos2 := -1;
@@ -212,7 +231,7 @@ BEGIN
 	RETURN FALSE
 END Invert;
 
-PROCEDURE (this: ArrayCollection) GetElementPos*(ptr: ANYPTR): LONGINT, NEW;
+PROCEDURE (this: ArrayCollection) GetElementPos*(ptr: ANYPTR): LONGINT(*, NEW*);
 	VAR i: LONGINT;
 BEGIN
 	WHILE i < this.nofElems DO
@@ -222,7 +241,7 @@ BEGIN
 	RETURN -1
 END GetElementPos;
 
-PROCEDURE (this: ArrayCollection) MoveUp*(ptr: ANYPTR; i: LONGINT): BOOLEAN, NEW;
+PROCEDURE (this: ArrayCollection) MoveUp*(ptr: ANYPTR; i: LONGINT): BOOLEAN(*, NEW*);
 	VAR p: ANYPTR;
 BEGIN
 	IF ptr # NIL THEN i := this.GetElementPos(ptr) END;
@@ -233,7 +252,7 @@ BEGIN
 	RETURN FALSE
 END MoveUp;
 
-PROCEDURE (this: ArrayCollection) MoveDown*(ptr: ANYPTR; i: LONGINT): BOOLEAN, NEW;
+PROCEDURE (this: ArrayCollection) MoveDown*(ptr: ANYPTR; i: LONGINT): BOOLEAN(*, NEW*);
 	VAR p: ANYPTR;
 BEGIN
 	IF ptr # NIL THEN i := this.GetElementPos(ptr) END;
@@ -247,22 +266,27 @@ END MoveDown;
 
 (* ------ Enumerator ------ *)
 
-PROCEDURE (this: Enumerator) HasMoreElements*(): BOOLEAN, NEW, ABSTRACT;
+PROCEDURE (this: Enumerator) HasMoreElements*(): BOOLEAN(*, NEW, ABSTRACT*);
+BEGIN
+END HasMoreElements;
 
-PROCEDURE (this: Enumerator) GetNext*(): ANYPTR, NEW, ABSTRACT;
+PROCEDURE (this: Enumerator) GetNext*(): ANYPTR(*, NEW, ABSTRACT*);
+BEGIN
+END GetNext;
 
-PROCEDURE (this: Enumerator) Reset*, NEW, ABSTRACT;
-
+PROCEDURE (this: Enumerator) Reset*(*, NEW, ABSTRACT*);
+BEGIN
+END Reset;
 
 (* ------ DictEnumerator ------ *)
 
 (* refers to the entry selected by GetNext() *)
-PROCEDURE (this: DictEnumerator) GetKey*(): String, NEW, ABSTRACT;
+PROCEDURE (this: DictEnumerator) GetKey*(): String(*, NEW, ABSTRACT*);
+BEGIN END GetKey;
 
 
 (* ------ ListEnumerator ------ *)
-
-PROCEDURE (this: ListEnumerator) Init*(list: List), NEW;
+PROCEDURE (this: ListEnumerator) Init*(list: List)(*, NEW*);
 BEGIN
 	this.coll := list;
 	this.current := list.first
@@ -288,7 +312,7 @@ END Reset;
 
 (* ------ ArrayEnumerator ------ *)
 
-PROCEDURE (this: ArrayEnumerator) Init*(array: PTRArray), NEW;
+PROCEDURE (this: ArrayEnumerator) Init*(array: PTRArray)(*, NEW*);
 BEGIN
 	this.array := array;
 	this.current := 0
@@ -296,7 +320,7 @@ END Init;
 
 PROCEDURE (this: ArrayEnumerator) HasMoreElements*(): BOOLEAN;
 BEGIN
-	RETURN (this.current < LEN(this.array)) & (this.array[this.current] # NIL)
+	RETURN (this.current < LEN(this.array^)) & (this.array[this.current] # NIL)
 END HasMoreElements;
 
 PROCEDURE (this: ArrayEnumerator) GetNext*(): ANYPTR;
@@ -318,20 +342,24 @@ END Reset;
 
 (* ------ Dictionary ------ *)
 
-PROCEDURE (this: Dictionary) GetNumberOfElements*(): LONGINT, NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) GetNumberOfElements*(): LONGINT(*, NEW, ABSTRACT*);
+BEGIN END GetNumberOfElements;
 
-PROCEDURE (this: Dictionary) Get*(VAR key: ARRAY OF CHAR): ANYPTR, NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) Get*(VAR key: ARRAY OF CHAR): ANYPTR(*, NEW, ABSTRACT*);
+BEGIN END Get;
 
-PROCEDURE (this: Dictionary) GetEnumerator*(): DictEnumerator, NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) GetEnumerator*(): DictEnumerator(*, NEW, ABSTRACT*);
+BEGIN END GetEnumerator;
 
-PROCEDURE (this: Dictionary) Add*(VAR key: ARRAY OF CHAR; p: ANYPTR), NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) Add*(VAR key: ARRAY OF CHAR; p: ANYPTR)(*, NEW, ABSTRACT*);
+BEGIN END Add;
 
-PROCEDURE (this: Dictionary) Remove*(VAR key: ARRAY OF CHAR), NEW, ABSTRACT;
+PROCEDURE (this: Dictionary) Remove*(VAR key: ARRAY OF CHAR)(*, NEW, ABSTRACT*);BEGIN END Remove;
 
 
 (* ------ArrayDictEnumerator ------ *)
 
-PROCEDURE (this: ArrayDictEnumerator) Init*(keys: StringArray; elems: PTRArray), NEW;
+PROCEDURE (this: ArrayDictEnumerator) Init*(keys: StringArray; elems: PTRArray)(*, NEW*);
 BEGIN
 	this.keys := keys;
 	this.elems := elems;
@@ -340,7 +368,7 @@ END Init;
 
 PROCEDURE (this: ArrayDictEnumerator) HasMoreElements*(): BOOLEAN;
 BEGIN
-	RETURN (this.current < LEN(this.elems)) & (this.elems[this.current] # NIL)
+	RETURN (this.current < LEN(this.elems^)) & (this.elems[this.current] # NIL)
 END HasMoreElements;
 
 PROCEDURE (this: ArrayDictEnumerator) GetNext*(): ANYPTR;
@@ -367,7 +395,7 @@ END Reset;
 
 (* ------ ArrayDict ------ *)
 
-PROCEDURE (this: ArrayDict) Init*, NEW;
+PROCEDURE (this: ArrayDict) Init*(*, NEW*);
 BEGIN
 	this.nofElems := 0;
 	NEW(this.keys, 16);
@@ -398,11 +426,11 @@ BEGIN
 	RETURN ade
 END GetEnumerator;
 
-PROCEDURE (this: ArrayDict) Grow, NEW;
+PROCEDURE (this: ArrayDict) Grow(*, NEW*);
 	VAR i: LONGINT; oldKeys: StringArray; oldElems: PTRArray;
 BEGIN
 	oldKeys := this.keys; oldElems := this.elems;
-	NEW(this.keys, 2 * LEN(this.keys)); NEW(this.elems, 2 * LEN(this.elems));
+	NEW(this.keys, 2 * LEN(this.keys^)); NEW(this.elems, 2 * LEN(this.elems^));
 	FOR i := 0 TO this.nofElems - 1 DO
 		this.keys[i] := oldKeys[i]; this.elems[i] := oldElems[i]
 	END
@@ -411,8 +439,9 @@ END Grow;
 PROCEDURE (this: ArrayDict) Add*(VAR key: ARRAY OF CHAR; p: ANYPTR);
 BEGIN
 	IF this.Get(key) = NIL THEN
-		IF this.nofElems = LEN(this.elems) THEN this.Grow() END;
-		NEW(this.keys[this.nofElems], LEN(key$) + 1); this.keys[this.nofElems]^ := key$;
+		IF this.nofElems = LEN(this.elems^) THEN this.Grow() END;
+		(*NEW(this.keys[this.nofElems], LEN(key$) + 1); this.keys[this.nofElems]^ := key$;*)
+		NEW(this.keys[this.nofElems], Strings.Length(key) + 1); COPY(key, this.keys[this.nofElems]^);
 		this.elems[this.nofElems] := p;
 		INC(this.nofElems)
 	(* TODO J. Templ: ignoring Add if key exists is not what is expected in JSON objects for example;
@@ -468,4 +497,4 @@ BEGIN
 	RETURN ad
 END NewArrayDict;
 
-END W3cObjects.
+END w3cObjects.

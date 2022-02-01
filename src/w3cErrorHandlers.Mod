@@ -1,16 +1,16 @@
-MODULE W3cErrorHandlers;
+MODULE w3cErrorHandlers;
 
 (* This module provides a base class and default implementation for error handling in scanners and parsers. *)
 
-IMPORT Strings, Dialog,
-	DStrings := W3cDStrings;
+IMPORT Strings, Out,
+	DStrings := w3cDStrings;
 
 CONST
 	MinErrorDist = 4;
 	MaxErrNum = 20;
 
 TYPE
-	ErrorHandler* = POINTER TO EXTENSIBLE RECORD
+	ErrorHandler* = POINTER TO (*EXTENSIBLE*) RECORD
 		configMinErrorDist*, (* configured minimum distance between handled errors *)
 		configMaxErrNum*: LONGINT; (* configured maximum number of errors reported *)
 		errorLog*: DStrings.DynamicString; (* buffer for default error reporting; one line per error *)
@@ -19,14 +19,14 @@ TYPE
 		lastErrorPos*: LONGINT; (* last error position, initially -configMinErrorDist *)
 	END;
 
-PROCEDURE (this: ErrorHandler) Reset* (), NEW, EXTENSIBLE;
+PROCEDURE (this: ErrorHandler) Reset* ()(*, NEW, EXTENSIBLE*);
 BEGIN
 	this.lastErrorPos := -this.configMinErrorDist; this.nofErrors := 0; this.cont := TRUE;
 	this.errorLog.Clear
 END Reset;
 
 (* constructor *)
-PROCEDURE (this: ErrorHandler) Init* (), NEW, EXTENSIBLE;
+PROCEDURE (this: ErrorHandler) Init* ()(*, NEW, EXTENSIBLE*);
 BEGIN
 	this.configMinErrorDist := MinErrorDist;
 	this.configMaxErrNum := MaxErrNum;
@@ -35,21 +35,22 @@ BEGIN
 END Init;
 
 (* appends error message to errorLog and continues; can be overridden *)
-PROCEDURE (this: ErrorHandler) ReportError* (pos, line, col: LONGINT; VAR msg: ARRAY OF CHAR),
-																	NEW, EXTENSIBLE;
-	VAR posStr, lineStr, colStr: ARRAY 24 OF CHAR; errPos, errMsg: Dialog.String;
+PROCEDURE (this: ErrorHandler) ReportError* (pos, line, col: LONGINT; VAR msg: ARRAY OF CHAR);
+														(*			NEW, EXTENSIBLE;*)
+	(*VAR posStr, lineStr, colStr: ARRAY 24 OF CHAR; errPos, errMsg: Dialog.String;*)
 BEGIN
-	Strings.IntToString(pos, posStr);
+  Out.String("errPos: "); Out.Int(pos, 2); Out.Int(line, 2); Out.Int(col, 2);
+  Out.String("errMsg: "); Out.String(msg); Out.Ln;
+	(*Strings.IntToString(pos, posStr);
 	Strings.IntToString(line, lineStr);
 	Strings.IntToString(col, colStr);
 	Dialog.MapParamString("#W3c:errPos", posStr, lineStr, colStr, errPos);
 	Dialog.MapParamString("#W3c:errMsg", errPos, msg, "", errMsg);
-	this.errorLog.Append(errMsg); this.errorLog.AppendLn
+	this.errorLog.Append(errMsg); this.errorLog.AppendLn*)
 END ReportError;
 
 (* handles an error message, usually not overridden *)
-PROCEDURE (this: ErrorHandler) HandleError* (pos, line, col: LONGINT; VAR msg: ARRAY OF CHAR),
-																	NEW, EXTENSIBLE;
+PROCEDURE (this: ErrorHandler) HandleError* (pos, line, col: LONGINT; VAR msg: ARRAY OF CHAR)(*,	NEW, EXTENSIBLE*);
 BEGIN
 	IF this.cont & (pos - this.lastErrorPos >= this.configMinErrorDist) & (this.nofErrors < this.configMaxErrNum) THEN
 		this.lastErrorPos := pos; INC(this.nofErrors);
@@ -57,4 +58,4 @@ BEGIN
 	END
 END HandleError;
 
-END W3cErrorHandlers.
+END w3cErrorHandlers.

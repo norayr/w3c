@@ -1,10 +1,10 @@
-MODULE W3cJSON;
+MODULE w3cJSON;
 
 (* This module provides a simple W3C standards conformant JSON parser and stringifier.
 J. Templ, 2018-05-04 *)
 
 IMPORT Strings, Dialog,	(*Files, Log,*)
-	ErrorHandlers := W3cErrorHandlers,
+	ErrorHandlers := w3cErrorHandlers,
 	Objects := W3cObjects,
 	Streams := W3cStreams,
 	DStrings := W3cDStrings;
@@ -493,4 +493,4 @@ END TestSuite;
 
 BEGIN
 	NEW(false); NEW(null); NEW(true)
-END W3cJSON.
+END w3cJSON.
