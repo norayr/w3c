@@ -142,6 +142,13 @@ BEGIN
 	RETURN s
 END Extract;
 
+PROCEDURE toString*(VAR this: DynamicString; VAR result: String);
+BEGIN
+  NEW(result, this.length + 1);
+  COPY("", result^);
+  Strings.Append(this.buffer^, result^);
+END toString;
+
 PROCEDURE (this: DynamicString) ToString*(): String;
 VAR string: String;
 BEGIN

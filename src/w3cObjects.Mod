@@ -10,7 +10,7 @@ ported to vishap oberon compiler by noch; 2022-02-01
 *)
 
 TYPE
-  ANYPTR = SYSTEM.PTR;
+  ANYPTR* = SYSTEM.PTR;
 
 	String = POINTER TO ARRAY OF CHAR;
 	StringArray = POINTER TO ARRAY OF String;

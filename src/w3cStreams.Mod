@@ -2,7 +2,7 @@ MODULE w3cStreams;
 
 (* This module provides character stream readers and writers as abstractions for storage media and encodings. *)
 
-IMPORT Files, Strings;
+IMPORT Files, Strings, DStrings := w3cDStrings;
 
 CONST
 	CR = 0DX; LF = 0AX;
@@ -18,7 +18,8 @@ TYPE
 		ok*: BOOLEAN;
 	END;
 
-	String* = POINTER TO ARRAY OF CHAR;
+	(*String* = POINTER TO ARRAY OF CHAR;*)
+	String* = DStrings.String;
 
 	Utf8FileReader* = POINTER TO Utf8FileReaderDesc;
   Utf8FileReaderDesc* = RECORD(ReaderDesc)

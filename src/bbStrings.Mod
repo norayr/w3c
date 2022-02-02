@@ -10,7 +10,7 @@ CONST
 
  VAR
   maxExp: LONGINT;
-  maxDig: LONGINT;
+  maxDig: INTEGER;
   factor: REAL; (* 10^maxDig *)
   digits: ARRAY 17 OF CHAR;
   toUpper, toLower: ARRAY 256 OF CHAR;
@@ -56,6 +56,166 @@ END Replace;
   REPEAT DEC(j); ch := a[j]; s[k] := ch; INC(k) UNTIL j = 0;
   s[k] := 0X
  END IntToString;
+
+  PROCEDURE StringToInt* (VAR s: ARRAY OF CHAR; VAR x: LONGINT; VAR res: LONGINT);
+    CONST hexLimit = MAX(LONGINT) DIV 8 + 1;
+    VAR i, j, k, digits: LONGINT; ch, top: CHAR; neg: BOOLEAN; base: LONGINT;
+  BEGIN
+    res := 0; i := 0; ch := s[0];
+    WHILE (ch # 0X) & (ch <= " ") OR (ch = 8BX) OR (ch = 8FX) OR (ch = 0A0X) DO (* ignore leading blanks *)
+      INC(i); ch := s[i]
+    END;
+    j := i; top := "0";
+    WHILE (ch # 0X) & (ch # "H") & (ch # "X") & (ch # "%") DO
+      IF ch > top THEN top := ch END;
+      INC(j); ch := s[j]
+    END;
+    IF (ch = "H") OR (ch = "X") THEN
+      x := 0; ch := s[i];
+      IF ("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F") THEN
+        WHILE ch = "0" DO INC(i); ch := s[i] END;
+        digits := 0;
+        WHILE (res = 0) & (("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F")) DO
+          IF ch < "A" THEN k := ORD(ch) - ORD("0")
+          ELSE k := ORD(ch) - ORD("A") + 10
+          END;
+          IF digits < 8 THEN
+            x := x MOD hexLimit;
+            IF x >= hexLimit DIV 2 THEN x := x - hexLimit END;
+            x := x * 16 + k; INC(i); ch := s[i]
+          ELSE res := 1
+          END;
+          INC(digits)
+        END;
+        IF res = 0 THEN
+          IF (ch # "H") & (ch # "X") OR (s[i+1] # 0X) THEN res := 2 END
+        END
+      ELSE res := 2
+      END
+    ELSE
+      IF ch = "%" THEN
+        INC(j); ch := s[j]; base := 0;
+        IF ("0" <= ch) & (ch <= "9") THEN
+          k := ORD(ch) - ORD("0");
+          REPEAT
+            base := base * 10 + k;
+            INC(j); ch := s[j]; k := ORD(ch) - ORD("0")
+          UNTIL (ch < "0") OR (ch > "9") OR (base > (MAX(LONGINT) - k) DIV 10);
+          IF ("0" <= ch) & (ch <= "9") THEN base := 0 END
+        END
+      ELSE
+        base := 10
+      END;
+
+      IF (base < 2) OR (base > 16) THEN
+        res := 2
+      ELSIF (base <= 10) & (ORD(top) < base + ORD("0"))
+      OR (base > 10) & (ORD(top) < base - 10 + ORD("A")) THEN
+        x := 0; ch := s[i]; neg := FALSE;
+        IF ch = "-" THEN INC(i); ch := s[i]; neg := TRUE ELSIF ch = "+" THEN INC(i); ch := s[i] END;
+        WHILE (ch # 0X) & (ch <= " ") DO INC(i); ch := s[i] END;
+        IF ("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F") THEN
+          IF ch <= "9" THEN k := ORD(ch) - ORD("0") ELSE k := ORD(ch) - ORD("A") + 10 END;
+          WHILE (("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F")) & (res = 0) DO
+            IF x >= (MIN(LONGINT) + (base - 1) + k) DIV base THEN
+              x := x * base - k; INC(i); ch := s[i];
+              IF ch <= "9" THEN k := ORD(ch) - ORD("0") ELSE k := ORD(ch) - ORD("A") + 10 END
+            ELSE res := 1
+            END
+          END
+        ELSE res := 2
+        END;
+        IF res = 0 THEN
+          IF ~neg THEN
+            IF x > MIN(LONGINT) THEN x := -x ELSE res := 1 END
+          END;
+          IF (ch # 0X) & (ch # "%") THEN res := 2 END
+        END
+      ELSE
+        res := 2
+      END
+    END
+  END StringToInt;
+     
+  PROCEDURE StringToLInt* (VAR s: ARRAY OF CHAR; VAR x: HUGEINT; VAR res: LONGINT);
+    CONST hexLimit = MAX(HUGEINT) DIV 8 + 1;
+    VAR i, j, k, digits: LONGINT; ch, top: CHAR; neg: BOOLEAN; base: LONGINT;
+  BEGIN
+    res := 0; i := 0; ch := s[0];
+    WHILE (ch # 0X) & (ch <= " ") OR (ch = 8BX) OR (ch = 8FX) OR (ch = 0A0X) DO (* ignore leading blanks *)
+      INC(i); ch := s[i]
+    END;
+    j := i; top := "0";
+    WHILE (ch # 0X) & (ch # "H") & (ch # "X") & (ch # "%") DO
+      IF ch > top THEN top := ch END;
+      INC(j); ch := s[j]
+    END;
+    IF (ch = "H") OR (ch = "X") THEN
+      x := 0; ch := s[i];
+      IF ("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F") THEN
+        WHILE ch = "0" DO INC(i); ch := s[i] END;
+        digits := 0;
+        WHILE (res = 0) & (("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F")) DO
+          IF ch < "A" THEN k := ORD(ch) - ORD("0")
+          ELSE k := ORD(ch) - ORD("A") + 10
+          END;
+          IF digits < 16 THEN
+            x := x MOD hexLimit;
+            IF x >= hexLimit DIV 2 THEN x := x - hexLimit END;
+            x := x * 16 + k; INC(i); ch := s[i]
+          ELSE res := 1
+          END;
+          INC(digits)
+        END;
+        IF res = 0 THEN
+          IF (ch # "H") & (ch # "X") OR (s[i+1] # 0X) THEN res := 2 END
+        END
+      ELSE res := 2
+      END
+    ELSE
+      IF ch = "%" THEN
+        INC(j); ch := s[j]; base := 0;
+        IF ("0" <= ch) & (ch <= "9") THEN
+          k := ORD(ch) - ORD("0");
+          REPEAT
+            base := base * 10 + k;
+            INC(j); ch := s[j]; k := ORD(ch) - ORD("0")
+          UNTIL (ch < "0") OR (ch > "9") OR (base > (MAX(LONGINT) - k) DIV 10);
+          IF ("0" <= ch) & (ch <= "9") THEN base := 0 END
+        END
+      ELSE
+        base := 10
+      END;
+
+      IF (base < 2) OR (base > 16) THEN
+        res := 2
+      ELSIF (base <= 10) & (ORD(top) < base + ORD("0"))
+      OR (base > 10) & (ORD(top) < base -10 + ORD("A")) THEN
+        x := 0; ch := s[i]; neg := FALSE;
+        IF ch = "-" THEN INC(i); ch := s[i]; neg := TRUE ELSIF ch = "+" THEN INC(i); ch := s[i] END;
+        WHILE (ch # 0X) & (ch <= " ") DO INC(i); ch := s[i] END;
+        IF ("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F") THEN
+          IF ch <= "9" THEN k := ORD(ch) - ORD("0") ELSE k := ORD(ch) - ORD("A") + 10 END;
+          WHILE (("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F")) & (res = 0) DO
+            IF x >= (MIN(HUGEINT) + (base - 1) + k) DIV base THEN
+              x := x * base - k; INC(i); ch := s[i];
+              IF ch <= "9" THEN k := ORD(ch) - ORD("0") ELSE k := ORD(ch) - ORD("A") + 10 END
+            ELSE res := 1
+            END
+          END
+        ELSE res := 2
+        END;
+        IF res = 0 THEN
+          IF ~neg THEN
+            IF x > MIN(HUGEINT) THEN x := -x ELSE res := 1 END
+          END;
+          IF (ch # 0X) & (ch # "%") THEN res := 2 END
+        END
+      ELSE
+        res := 2
+      END
+    END
+  END StringToLInt;          
 
 (* string manipulation routines *)
 

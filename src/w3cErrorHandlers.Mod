@@ -26,6 +26,15 @@ BEGIN
 END Reset;
 
 (* constructor *)
+
+PROCEDURE Create*(): ErrorHandler; (* noch: had to create this otherwise was having weird issue in w3cJSON.InitScanner function *)
+VAR
+  e: ErrorHandler;
+BEGIN
+  NEW(e);
+  RETURN e
+END Create;
+
 PROCEDURE (this: ErrorHandler) Init* ()(*, NEW, EXTENSIBLE*);
 BEGIN
 	this.configMinErrorDist := MinErrorDist;
