@@ -1,15 +1,17 @@
 VOC=/opt/voc/bin/voc
+BLD=build
 
 all:
-		$(VOC) -s src/bbStrings.Mod
-		$(VOC) -s src/w3cDStrings.Mod
-		$(VOC) -s src/w3cStreams.Mod
-		$(VOC) -s src/w3cErrorHandlers.Mod
-		$(VOC) -s src/w3cObjects.Mod
-		$(VOC) -s src/w3cJSON.Mod
+		mkdir -p $(BLD)
+		cd $(BLD) && $(VOC) -s ../src/bbStrings.Mod \
+		../src/w3cDStrings.Mod \
+		../src/w3cStreams.Mod \
+		../src/w3cErrorHandlers.Mod \
+		../src/w3cObjects.Mod \
+		../src/w3cJSON.Mod
 
 clean:
-		rm *.o
-		rm *.c
-		rm *.h
-		rm *.sym
+		rm $(BLD)/*.o
+		rm $(BLD)/*.c
+		rm $(BLD)/*.h
+		rm $(BLD)/*.sym
